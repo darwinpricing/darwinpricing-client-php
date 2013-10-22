@@ -1,0 +1,29 @@
+{
+    "name": "fauvel-consulting/smart-prices-localizer-client",
+    "description": "PHP Client for the Dynamic Pricing and Real-Time Local Market Analysis System Smart Prices Localizer",
+    "version": "1.0.0",
+    "homepage": "http://www.smart-prices-localizer.com",
+    "license": "LGPL-3.0",
+    "authors": [
+        {
+            "name": "Sébastien Fauvel",
+            "email": "sebastien.fauvel@gmx.ch",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "email": "info@smart-prices-localizer.com"
+    },
+    "require": {
+        "php": ">=5.0.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    },
+    "autoload": {
+        "psr-0": {
+            "FC_": "src/",
+            "FCTest_": "tests/"
+        }
+    }
+}
