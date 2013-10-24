@@ -1,6 +1,6 @@
 <?php
 
-class FC_SmartPricesLocalizer_Client_Cache {
+class FC_Smart_Client_Cache {
 
 	/** @var bool */
 	protected static $_apcEnabled = null;
