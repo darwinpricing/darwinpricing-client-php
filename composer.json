@@ -1,5 +1,5 @@
 {
-    "name": "fauvel-consulting/smart-prices-localizer-client",
+    "name": "smart-prices-localizer/smart-prices-localizer-client",
     "description": "PHP Client for the Dynamic Pricing and Real-Time Local Market Analysis System Smart Prices Localizer",
     "version": "2.0.0",
     "homepage": "http://www.smart-prices-localizer.com",
