@@ -1,45 +1,52 @@
 <?php
 
-class FC_SmartPricesLocalizer_ClientTest extends PHPUnit_Framework_TestCase {
+class FCTest_Smart_ClientTest extends PHPUnit_Framework_TestCase {
 
 	public function setUp() {
 		$_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 	}
 
 	public function testConstruct() {
-		new FC_SmartPricesLocalizer_Client('http://api.smart-prices-localizer.com', 123, 456, 'abc');
-		new FC_SmartPricesLocalizer_Client('http://api.smart-prices-localizer.com/', 123, 456, 'abc');
-		new FC_SmartPricesLocalizer_Client('http://api.smart-prices-localizer.com/api', 123, 456, 'abc');
-		new FC_SmartPricesLocalizer_Client('http://api.smart-prices-localizer.com/api/', 123, 456, 'abc');
-		new FC_SmartPricesLocalizer_Client('http://api.smart-prices-localizer.com:8080', 123, 456, 'abc');
-		new FC_SmartPricesLocalizer_Client('http://api.smart-prices-localizer.com:8080/api', 123, 456, 'abc');
-		new FC_SmartPricesLocalizer_Client('https://api.smart-prices-localizer.com', 123, 456, 'abc');
-		new FC_SmartPricesLocalizer_Client('http://user@api.smart-prices-localizer.com', 123, 456, 'abc');
-		new FC_SmartPricesLocalizer_Client('http://user:pass@api.smart-prices-localizer.com', 123, 456, 'abc');
+		new FC_Smart_Client('http://api.smart-prices-localizer.com', 123, 456, 'abc');
+		new FC_Smart_Client('http://api.smart-prices-localizer.com/', 123, 456, 'abc');
+		new FC_Smart_Client('http://api.smart-prices-localizer.com/api', 123, 456, 'abc');
+		new FC_Smart_Client('http://api.smart-prices-localizer.com/api/', 123, 456, 'abc');
+		new FC_Smart_Client('http://api.smart-prices-localizer.com:8080', 123, 456, 'abc');
+		new FC_Smart_Client('http://api.smart-prices-localizer.com:8080/api', 123, 456, 'abc');
+		new FC_Smart_Client('https://api.smart-prices-localizer.com', 123, 456, 'abc');
+		new FC_Smart_Client('http://user@api.smart-prices-localizer.com', 123, 456, 'abc');
+		new FC_Smart_Client('http://user:pass@api.smart-prices-localizer.com', 123, 456, 'abc');
 	}
 
 	/**
-	 * @expectedException FC_SmartPricesLocalizer_Client_Exception_InvalidParameter
+	 * @expectedException FC_Smart_Client_Exception_InvalidParameter
 	 * @exceptedExceptionMessage Invalid server URL
 	 */
 	public function testConstruct_InvalidParameter_MissingProtocol() {
-		new FC_SmartPricesLocalizer_Client('api.smart-prices-localizer.com', 123, 456, 'abc');
+		new FC_Smart_Client('api.smart-prices-localizer.com', 123, 456, 'abc');
 	}
 
 	/**
-	 * @expectedException FC_SmartPricesLocalizer_Client_Exception_InvalidParameter
+	 * @expectedException FC_Smart_Client_Exception_InvalidParameter
 	 * @exceptedExceptionMessage Invalid server URL
 	 */
 	public function testConstruct_InvalidParameter_Query() {
-		new FC_SmartPricesLocalizer_Client('http://api.smart-prices-localizer.com/?test', 123, 456, 'abc');
+		new FC_Smart_Client('http://api.smart-prices-localizer.com/?test', 123, 456, 'abc');
 	}
 
 	/**
-	 * @expectedException FC_SmartPricesLocalizer_Client_Exception_InvalidParameter
+	 * @expectedException FC_Smart_Client_Exception_InvalidParameter
 	 * @exceptedExceptionMessage Invalid server URL
 	 */
 	public function testConstruct_InvalidParameter_Fragment() {
-		new FC_SmartPricesLocalizer_Client('http://api.smart-prices-localizer.com/#test', 123, 456, 'abc');
+		new FC_Smart_Client('http://api.smart-prices-localizer.com/#test', 123, 456, 'abc');
+	}
+
+	public function testAddPayment() {
+		$this->_testAddPayment(new FC_Smart_Client_Price(123.45, 'USD'), null);
+		$this->_testAddPayment(new FC_Smart_Client_Price(-123.45, 'USD'), 99);
+		$this->_testAddPayment(new FC_Smart_Client_Price(123.45), null);
+		$this->_testAddPayment(new FC_Smart_Client_Price(-123), 'v99');
 	}
 
 	public function testGetDynamicPrice_serverUrl() {
@@ -192,19 +199,19 @@ class FC_SmartPricesLocalizer_ClientTest extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @expectedException FC_SmartPricesLocalizer_Client_Exception_InvalidParameter
+	 * @expectedException FC_Smart_Client_Exception_InvalidParameter
 	 * @expectedExceptionMessage Invalid reference price list
 	 */
 	public function testDynamicPriceList_InvalidParameter() {
-		$client = new FC_SmartPricesLocalizer_Client('http://api.smart-prices-localizer.com', 123, 456, 'abc');
-		$client->getDynamicPriceList(new FC_SmartPricesLocalizer_Client_Price(123.45, 'USD'));
+		$client = new FC_Smart_Client('http://api.smart-prices-localizer.com', 123, 456, 'abc');
+		$client->getDynamicPriceList(new FC_Smart_Client_Price(123.45, 'USD'));
 	}
 
 	public function testDynamicPriceList_InvalidResponse() {
-		$referencePriceList = array(new FC_SmartPricesLocalizer_Client_Price(123.45, 'USD'));
+		$referencePriceList = array(new FC_Smart_Client_Price(123.45, 'USD'));
 		$referencePriceExpected = 'USD123.45';
 		$clientConfig = array('http://api.smart-prices-localizer.com', 123, 456, 'abc');
-		$client = $this->getMockBuilder('FC_SmartPricesLocalizer_Client')->setMethods(array('_httpGet'))->setConstructorArgs($clientConfig)->getMock();
+		$client = $this->getMockBuilder('FC_Smart_Client')->setMethods(array('_httpGet'))->setConstructorArgs($clientConfig)->getMock();
 		$client->expects($this->any())->method('_httpGet')->will($this->returnValue(''));
 		$urlExpected = 'http://api.smart-prices-localizer.com/get-dynamic-price?customer-id=123&site-id=456&hash=abc&visitor-ip=127.0.0.1&reference-price=' . $referencePriceExpected . '&visitor-id=99';
 		$client->expects($this->once())->method('_httpGet')->with($urlExpected);
@@ -227,17 +234,26 @@ class FC_SmartPricesLocalizer_ClientTest extends PHPUnit_Framework_TestCase {
 		$this->_testHttpPost('http://api.smart-prices-localizer.com', false);
 	}
 
-	public function testRecordPurchase() {
-		$this->_testRecordPurchase(new FC_SmartPricesLocalizer_Client_Price(123.45, 'USD'), null);
-		$this->_testRecordPurchase(new FC_SmartPricesLocalizer_Client_Price(-123.45, 'USD'), 99);
-		$this->_testRecordPurchase(new FC_SmartPricesLocalizer_Client_Price(123.45), null);
-		$this->_testRecordPurchase(new FC_SmartPricesLocalizer_Client_Price(-123), 'v99');
+	protected function _testAddPayment($profit, $visitorId) {
+		foreach(array(true, false) as $return) {
+			$serverUrl = 'http://api.smart-prices-localizer.com';
+			$clientConfig = array($serverUrl, 123, 456, 'abc');
+			$client = $this->getMockBuilder('FC_Smart_Client')->setMethods(array('_httpPost'))->setConstructorArgs($clientConfig)->getMock();
+			$client->expects($this->any())->method('_httpPost')->will($this->returnValue($return));
+			$urlExpected = $serverUrl . '/add-payment?customer-id=123&site-id=456&hash=abc&visitor-ip=127.0.0.1&profit=' . $profit;
+			if(null !== $visitorId) {
+				$urlExpected .= '&visitor-id=' . $visitorId;
+			}
+			$client->expects($this->once())->method('_httpPost')->with($urlExpected);
+
+			$this->assertSame($return, $client->recordPurchase($profit, $visitorId));
+		}
 	}
 
 	protected function _testDynamicPrice($serverUrl, $serverUrlExpected, $dynamicPriceMock, $referencePrice, $referencePriceExpected, $visitorId) {
 		$clientConfig = array($serverUrl, 123, 456, 'abc');
 		$serverUrlExpected = isset($serverUrlExpected) ? $serverUrlExpected : $serverUrl;
-		$client = $this->getMockBuilder('FC_SmartPricesLocalizer_Client')->setMethods(array('_httpGet'))->setConstructorArgs($clientConfig)->getMock();
+		$client = $this->getMockBuilder('FC_Smart_Client')->setMethods(array('_httpGet'))->setConstructorArgs($clientConfig)->getMock();
 		$client->expects($this->any())->method('_httpGet')->will($this->returnValue(null !== $dynamicPriceMock ? json_encode($dynamicPriceMock) : null));
 		$urlExpected = $serverUrlExpected . '/get-dynamic-price?customer-id=123&site-id=456&hash=abc&visitor-ip=127.0.0.1&reference-price=' . $referencePriceExpected;
 		if(null !== $visitorId) {
@@ -245,8 +261,8 @@ class FC_SmartPricesLocalizer_ClientTest extends PHPUnit_Framework_TestCase {
 		}
 		$client->expects($this->once())->method('_httpGet')->with($urlExpected);
 
-		$dynamicPriceActual = $client->getDynamicPrice(FC_SmartPricesLocalizer_Client_Price::fromArray($referencePrice), $visitorId);
-		$this->assertInstanceOf('FC_SmartPricesLocalizer_Client_Price', $dynamicPriceActual);
+		$dynamicPriceActual = $client->getDynamicPrice(FC_Smart_Client_Price::fromArray($referencePrice), $visitorId);
+		$this->assertInstanceOf('FC_Smart_Client_Price', $dynamicPriceActual);
 		$dynamicPriceExpected = null !== $dynamicPriceMock ? $dynamicPriceMock : $referencePrice;
 		$this->assertSame((float) $dynamicPriceExpected['value'], $dynamicPriceActual->getValue());
 		$this->assertSame(isset($dynamicPriceExpected['currency']) ? $dynamicPriceExpected['currency'] : null, $dynamicPriceActual->getCurrency());
@@ -254,18 +270,18 @@ class FC_SmartPricesLocalizer_ClientTest extends PHPUnit_Framework_TestCase {
 
 	protected function _testDynamicPriceList($referencePriceList, $referencePriceExpected, $dynamicPriceListMock) {
 		$clientConfig = array('http://api.smart-prices-localizer.com', 123, 456, 'abc');
-		$client = $this->getMockBuilder('FC_SmartPricesLocalizer_Client')->setMethods(array('_httpGet'))->setConstructorArgs($clientConfig)->getMock();
+		$client = $this->getMockBuilder('FC_Smart_Client')->setMethods(array('_httpGet'))->setConstructorArgs($clientConfig)->getMock();
 		$client->expects($this->any())->method('_httpGet')->will($this->returnValue(null !== $dynamicPriceListMock ? json_encode($dynamicPriceListMock) : null));
 		$urlExpected = 'http://api.smart-prices-localizer.com/get-dynamic-price?customer-id=123&site-id=456&hash=abc&visitor-ip=127.0.0.1&reference-price=' . $referencePriceExpected . '&visitor-id=99';
 		$client->expects($this->once())->method('_httpGet')->with($urlExpected);
 
 		$dynamicPriceListActual = $client->getDynamicPriceList(array_map(array(
-		                                                                      'FC_SmartPricesLocalizer_Client_Price',
+		                                                                      'FC_Smart_Client_Price',
 		                                                                      'fromArray'
 		                                                                 ), $referencePriceList), 99);
 		$this->assertTrue(is_array($dynamicPriceListActual));
 		foreach($dynamicPriceListActual as $dynamicPriceActual) {
-			$this->assertInstanceOf('FC_SmartPricesLocalizer_Client_Price', $dynamicPriceActual);
+			$this->assertInstanceOf('FC_Smart_Client_Price', $dynamicPriceActual);
 		}
 		if(null === $dynamicPriceListMock) {
 			$dynamicPriceListExpected = $referencePriceList;
@@ -285,7 +301,7 @@ class FC_SmartPricesLocalizer_ClientTest extends PHPUnit_Framework_TestCase {
 
 	protected function _testHttpGet($expected, $url, $curlResultMock) {
 		$clientConfig = array('http://api.smart-prices-localizer.com', 123, 456, 'abc');
-		$client = $this->getMockBuilder('FC_SmartPricesLocalizer_Client')->setMethods(array('_curlExec'))->setConstructorArgs($clientConfig)->getMock();
+		$client = $this->getMockBuilder('FC_Smart_Client')->setMethods(array('_curlExec'))->setConstructorArgs($clientConfig)->getMock();
 		$client->expects($this->any())->method('_curlExec')->will($this->returnValue($curlResultMock));
 		$class = new ReflectionClass($client);
 		$_httpGet = $class->getMethod('_httpGet');
@@ -295,27 +311,11 @@ class FC_SmartPricesLocalizer_ClientTest extends PHPUnit_Framework_TestCase {
 
 	protected function _testHttpPost($url, $curlResultMock) {
 		$clientConfig = array('http://api.smart-prices-localizer.com', 123, 456, 'abc');
-		$client = $this->getMockBuilder('FC_SmartPricesLocalizer_Client')->setMethods(array('_curlExec'))->setConstructorArgs($clientConfig)->getMock();
+		$client = $this->getMockBuilder('FC_Smart_Client')->setMethods(array('_curlExec'))->setConstructorArgs($clientConfig)->getMock();
 		$client->expects($this->any())->method('_curlExec')->will($this->returnValue($curlResultMock));
 		$class = new ReflectionClass($client);
 		$_httpPost = $class->getMethod('_httpPost');
 		$_httpPost->setAccessible(true);
 		$this->assertSame($curlResultMock, $_httpPost->invokeArgs($client, array($url)));
-	}
-
-	protected function _testRecordPurchase($profit, $visitorId) {
-		foreach(array(true, false) as $return) {
-			$serverUrl = 'http://api.smart-prices-localizer.com';
-			$clientConfig = array($serverUrl, 123, 456, 'abc');
-			$client = $this->getMockBuilder('FC_SmartPricesLocalizer_Client')->setMethods(array('_httpPost'))->setConstructorArgs($clientConfig)->getMock();
-			$client->expects($this->any())->method('_httpPost')->will($this->returnValue($return));
-			$urlExpected = $serverUrl . '/record-purchase?customer-id=123&site-id=456&hash=abc&visitor-ip=127.0.0.1&profit=' . $profit;
-			if(null !== $visitorId) {
-				$urlExpected .= '&visitor-id=' . $visitorId;
-			}
-			$client->expects($this->once())->method('_httpPost')->with($urlExpected);
-
-			$this->assertSame($return, $client->recordPurchase($profit, $visitorId));
-		}
 	}
 }

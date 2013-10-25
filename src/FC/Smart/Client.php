@@ -1,6 +1,6 @@
 <?php
 
-class FC_SmartPricesLocalizer_Client {
+class FC_Smart_Client {
 
 	/** @var int */
 	protected $_customerId;
@@ -23,16 +23,16 @@ class FC_SmartPricesLocalizer_Client {
 	 * @param int    $siteId     The ID of your site
 	 * @param string $hash       The secret hash code for your site
 	 *
-	 * @throws FC_SmartPricesLocalizer_Client_Exception_InvalidParameter
+	 * @throws FC_Smart_Client_Exception_InvalidParameter
 	 */
 	public function __construct($serverUrl, $customerId, $siteId, $hash) {
 		$serverUrlFiltered = filter_var((string) $serverUrl, FILTER_VALIDATE_URL);
 		if(false === $serverUrlFiltered) {
-			throw new FC_SmartPricesLocalizer_Client_Exception_InvalidParameter("Invalid server URL `$serverUrl`");
+			throw new FC_Smart_Client_Exception_InvalidParameter("Invalid server URL `$serverUrl`");
 		}
 		$serverUrlParsed = parse_url($serverUrlFiltered);
 		if(isset($serverUrlParsed['query']) || isset($serverUrlParsed['fragment']) || (false !== strpos($serverUrlFiltered, '?')) || (false !== strpos($serverUrlFiltered, '#'))) {
-			throw new FC_SmartPricesLocalizer_Client_Exception_InvalidParameter("Invalid server URL `$serverUrl`");
+			throw new FC_Smart_Client_Exception_InvalidParameter("Invalid server URL `$serverUrl`");
 		}
 		if(substr($serverUrlFiltered, -1) === '/') {
 			$serverUrlFiltered = substr($serverUrlFiltered, 0, -1);
@@ -45,30 +45,40 @@ class FC_SmartPricesLocalizer_Client {
 	}
 
 	/**
-	 * @param FC_SmartPricesLocalizer_Client_Price $referencePrice The original price
-	 * @param string|null                          $visitorId      The ID of the visitor or customer on your system, if any
+	 * @param FC_Smart_Client_Price $profit
+	 * @param null                  $visitorId
 	 *
-	 * @throws FC_SmartPricesLocalizer_Client_Exception_InvalidParameter
-	 * @return FC_SmartPricesLocalizer_Client_Price
+	 * @return bool
 	 */
-	public function getDynamicPrice(FC_SmartPricesLocalizer_Client_Price $referencePrice, $visitorId = null) {
+	public function addPayment(FC_Smart_Client_Price $profit, $visitorId = null) {
+		return $this->_addPayment((string) $profit, $visitorId);
+	}
+
+	/**
+	 * @param FC_Smart_Client_Price $referencePrice The original price
+	 * @param string|null           $visitorId      The ID of the visitor or customer on your system, if any
+	 *
+	 * @throws FC_Smart_Client_Exception_InvalidParameter
+	 * @return FC_Smart_Client_Price
+	 */
+	public function getDynamicPrice(FC_Smart_Client_Price $referencePrice, $visitorId = null) {
 		$dynamicPrice = $this->_getDynamicPrice((string) $referencePrice, $visitorId);
 		if(null !== $dynamicPrice) {
-			return FC_SmartPricesLocalizer_Client_Price::fromArray($dynamicPrice);
+			return FC_Smart_Client_Price::fromArray($dynamicPrice);
 		}
 		return $referencePrice;
 	}
 
 	/**
-	 * @param FC_SmartPricesLocalizer_Client_Price[] $referencePriceList The original prices
-	 * @param string|null                            $visitorId          The ID of the visitor or customer on your system, if any
+	 * @param FC_Smart_Client_Price[] $referencePriceList The original prices
+	 * @param string|null             $visitorId          The ID of the visitor or customer on your system, if any
 	 *
-	 * @throws FC_SmartPricesLocalizer_Client_Exception_InvalidParameter
-	 * @return FC_SmartPricesLocalizer_Client_Price[]
+	 * @throws FC_Smart_Client_Exception_InvalidParameter
+	 * @return FC_Smart_Client_Price[]
 	 */
 	public function getDynamicPriceList($referencePriceList, $visitorId = null) {
 		if(!is_array($referencePriceList)) {
-			throw new FC_SmartPricesLocalizer_Client_Exception_InvalidParameter('Invalid reference price list `' . serialize($referencePriceList) . '`');
+			throw new FC_Smart_Client_Exception_InvalidParameter('Invalid reference price list `' . serialize($referencePriceList) . '`');
 		}
 		$referencePrices = implode(',', $referencePriceList);
 		$dynamicPrices = $this->_getDynamicPrice($referencePrices, $visitorId);
@@ -76,7 +86,7 @@ class FC_SmartPricesLocalizer_Client {
 			$i = 0;
 			foreach($referencePriceList as $key => $referencePrice) {
 				if(isset($dynamicPrices[$i])) {
-					$referencePriceList[$key] = FC_SmartPricesLocalizer_Client_Price::fromArray($dynamicPrices[$i]);
+					$referencePriceList[$key] = FC_Smart_Client_Price::fromArray($dynamicPrices[$i]);
 				}
 				$i++;
 			}
@@ -85,13 +95,24 @@ class FC_SmartPricesLocalizer_Client {
 	}
 
 	/**
-	 * @param FC_SmartPricesLocalizer_Client_Price $profit
-	 * @param null                                 $visitorId
+	 * @param string      $profit
+	 * @param string|null $visitorId
 	 *
 	 * @return bool
 	 */
-	public function recordPurchase(FC_SmartPricesLocalizer_Client_Price $profit, $visitorId = null) {
-		return $this->_recordPurchase((string) $profit, $visitorId);
+	protected function _addPayment($profit, $visitorId = null) {
+		$parameterList = array(
+			'customer-id' => $this->_customerId,
+			'site-id'     => $this->_siteId,
+			'hash'        => $this->_hash,
+			'visitor-ip'  => $this->_visitorIp,
+			'profit'      => (string) $profit,
+		);
+		if(null !== $visitorId) {
+			$parameterList['visitor-id'] = (string) $visitorId;
+		}
+		$url = $this->_serverUrl . '/add-payment?' . http_build_query($parameterList);
+		return $this->_httpPost($url);
 	}
 
 	/**
@@ -140,7 +161,7 @@ class FC_SmartPricesLocalizer_Client {
 	protected function _httpGet($url) {
 		$url = (string) $url;
 		$cacheKey = __CLASS__ . '::' . __METHOD__ . '(' . $url . ')';
-		$result = FC_SmartPricesLocalizer_Client_Cache::get($cacheKey);
+		$result = FC_Smart_Client_Cache::get($cacheKey);
 		if(false === $result) {
 			$ch = curl_init($url);
 			curl_setopt_array($ch, array(
@@ -151,7 +172,7 @@ class FC_SmartPricesLocalizer_Client {
 			if(!is_string($result)) {
 				return null;
 			}
-			FC_SmartPricesLocalizer_Client_Cache::set($cacheKey, $result);
+			FC_Smart_Client_Cache::set($cacheKey, $result);
 		}
 		return $result;
 	}
@@ -169,26 +190,5 @@ class FC_SmartPricesLocalizer_Client {
 		                            CURLOPT_TIMEOUT_MS => 500,
 		                       ));
 		return $this->_curlExec($ch);
-	}
-
-	/**
-	 * @param string      $profit
-	 * @param string|null $visitorId
-	 *
-	 * @return bool
-	 */
-	protected function _recordPurchase($profit, $visitorId = null) {
-		$parameterList = array(
-			'customer-id' => $this->_customerId,
-			'site-id'     => $this->_siteId,
-			'hash'        => $this->_hash,
-			'visitor-ip'  => $this->_visitorIp,
-			'profit'      => (string) $profit,
-		);
-		if(null !== $visitorId) {
-			$parameterList['visitor-id'] = (string) $visitorId;
-		}
-		$url = $this->_serverUrl . '/record-purchase?' . http_build_query($parameterList);
-		return $this->_httpPost($url);
 	}
 }
