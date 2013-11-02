@@ -246,7 +246,7 @@ class FCTest_Smart_ClientTest extends PHPUnit_Framework_TestCase {
 			}
 			$client->expects($this->once())->method('_httpPost')->with($urlExpected);
 
-			$this->assertSame($return, $client->recordPurchase($profit, $visitorId));
+			$this->assertSame($return, $client->addPayment($profit, $visitorId));
 		}
 	}
 
