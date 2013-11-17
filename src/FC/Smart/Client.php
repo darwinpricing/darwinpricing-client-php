@@ -15,13 +15,14 @@ class FC_Smart_Client {
 	protected $_visitorIp;
 
 	/**
-	 * @param string $serverUrl  The URL of your Smart Prices Localizer server
-	 * @param int    $siteId     The ID of your site
-	 * @param string $hash       The secret hash code for your site
+	 * @param string      $serverUrl The URL of your Smart Prices Localizer server
+	 * @param int         $siteId    The ID of your site
+	 * @param string      $hash      The secret hash code for your site
+	 * @param string|null $visitorIp The stored IP address of the visitor, for background jobs
 	 *
 	 * @throws FC_Smart_Client_Exception_InvalidParameter
 	 */
-	public function __construct($serverUrl, $siteId, $hash) {
+	public function __construct($serverUrl, $siteId, $hash, $visitorIp = null) {
 		$serverUrlFiltered = filter_var((string) $serverUrl, FILTER_VALIDATE_URL);
 		if(false === $serverUrlFiltered) {
 			throw new FC_Smart_Client_Exception_InvalidParameter("Invalid server URL `$serverUrl`");
@@ -36,16 +37,24 @@ class FC_Smart_Client {
 		$this->_serverUrl = $serverUrlFiltered;
 		$this->_siteId = (int) $siteId;
 		$this->_hash = (string) $hash;
-		$this->_visitorIp = $_SERVER['REMOTE_ADDR'];
+		if(null !== $visitorIp) {
+			$this->_visitorIp = (string) $visitorIp;
+		} else {
+			$this->_visitorIp = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : null;
+		}
 	}
 
 	/**
 	 * @param FC_Smart_Client_Price $profit
 	 * @param null                  $visitorId
 	 *
+	 * @throws FC_Smart_Client_Exception_MissingParameter
 	 * @return bool
 	 */
 	public function addPayment(FC_Smart_Client_Price $profit, $visitorId = null) {
+		if((null === $visitorId) && (null === $this->_visitorIp)) {
+			throw new FC_Smart_Client_Exception_MissingParameter('Missing argument `$visitorId`');
+		}
 		return $this->_addPayment((string) $profit, $visitorId);
 	}
 
@@ -53,10 +62,13 @@ class FC_Smart_Client {
 	 * @param FC_Smart_Client_Price $referencePrice The original price
 	 * @param string|null           $visitorId      The ID of the visitor or customer on your system, if any
 	 *
-	 * @throws FC_Smart_Client_Exception_InvalidParameter
+	 * @throws FC_Smart_Client_Exception_MissingParameter
 	 * @return FC_Smart_Client_Price
 	 */
 	public function getDynamicPrice(FC_Smart_Client_Price $referencePrice, $visitorId = null) {
+		if((null === $visitorId) && (null === $this->_visitorIp)) {
+			throw new FC_Smart_Client_Exception_MissingParameter('Missing argument `$visitorId`');
+		}
 		$dynamicPrice = $this->_getDynamicPrice((string) $referencePrice, $visitorId);
 		if(null !== $dynamicPrice) {
 			return FC_Smart_Client_Price::fromArray($dynamicPrice);
@@ -69,11 +81,15 @@ class FC_Smart_Client {
 	 * @param string|null             $visitorId          The ID of the visitor or customer on your system, if any
 	 *
 	 * @throws FC_Smart_Client_Exception_InvalidParameter
+	 * @throws FC_Smart_Client_Exception_MissingParameter
 	 * @return FC_Smart_Client_Price[]
 	 */
 	public function getDynamicPriceList($referencePriceList, $visitorId = null) {
 		if(!is_array($referencePriceList)) {
 			throw new FC_Smart_Client_Exception_InvalidParameter('Invalid reference price list `' . serialize($referencePriceList) . '`');
+		}
+		if((null === $visitorId) && (null === $this->_visitorIp)) {
+			throw new FC_Smart_Client_Exception_MissingParameter('Missing argument `$visitorId`');
 		}
 		$referencePrices = implode(',', $referencePriceList);
 		$dynamicPrices = $this->_getDynamicPrice($referencePrices, $visitorId);
@@ -96,15 +112,16 @@ class FC_Smart_Client {
 	 * @return bool
 	 */
 	protected function _addPayment($profit, $visitorId = null) {
-		$parameterList = array(
-			'site-id'     => $this->_siteId,
-			'hash'        => $this->_hash,
-			'visitor-ip'  => $this->_visitorIp,
-			'profit'      => (string) $profit,
-		);
 		if(null !== $visitorId) {
-			$parameterList['visitor-id'] = (string) $visitorId;
+			$visitorId = (string) $visitorId;
 		}
+		$parameterList = array(
+			'site-id'    => $this->_siteId,
+			'hash'       => $this->_hash,
+			'visitor-ip' => $this->_visitorIp,
+			'profit'     => (string) $profit,
+			'visitor-id' => $visitorId,
+		);
 		$url = $this->_serverUrl . '/add-payment?' . http_build_query($parameterList);
 		return $this->_httpPost($url);
 	}
@@ -112,6 +129,7 @@ class FC_Smart_Client {
 	/**
 	 * @param resource $ch
 	 *
+	 * @codeCoverageIgnore
 	 * @return mixed
 	 */
 	protected function _curlExec($ch) {
