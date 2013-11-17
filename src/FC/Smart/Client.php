@@ -2,9 +2,6 @@
 
 class FC_Smart_Client {
 
-	/** @var int */
-	protected $_customerId;
-
 	/** @var string */
 	protected $_hash;
 
@@ -19,13 +16,12 @@ class FC_Smart_Client {
 
 	/**
 	 * @param string $serverUrl  The URL of your Smart Prices Localizer server
-	 * @param int    $customerId The ID of your customer account
 	 * @param int    $siteId     The ID of your site
 	 * @param string $hash       The secret hash code for your site
 	 *
 	 * @throws FC_Smart_Client_Exception_InvalidParameter
 	 */
-	public function __construct($serverUrl, $customerId, $siteId, $hash) {
+	public function __construct($serverUrl, $siteId, $hash) {
 		$serverUrlFiltered = filter_var((string) $serverUrl, FILTER_VALIDATE_URL);
 		if(false === $serverUrlFiltered) {
 			throw new FC_Smart_Client_Exception_InvalidParameter("Invalid server URL `$serverUrl`");
@@ -38,7 +34,6 @@ class FC_Smart_Client {
 			$serverUrlFiltered = substr($serverUrlFiltered, 0, -1);
 		}
 		$this->_serverUrl = $serverUrlFiltered;
-		$this->_customerId = (int) $customerId;
 		$this->_siteId = (int) $siteId;
 		$this->_hash = (string) $hash;
 		$this->_visitorIp = $_SERVER['REMOTE_ADDR'];
@@ -102,7 +97,6 @@ class FC_Smart_Client {
 	 */
 	protected function _addPayment($profit, $visitorId = null) {
 		$parameterList = array(
-			'customer-id' => $this->_customerId,
 			'site-id'     => $this->_siteId,
 			'hash'        => $this->_hash,
 			'visitor-ip'  => $this->_visitorIp,
@@ -132,7 +126,6 @@ class FC_Smart_Client {
 	 */
 	protected function _getDynamicPrice($referencePrice, $visitorId = null) {
 		$parameterList = array(
-			'customer-id'     => $this->_customerId,
 			'site-id'         => $this->_siteId,
 			'hash'            => $this->_hash,
 			'visitor-ip'      => $this->_visitorIp,
