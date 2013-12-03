@@ -1,7 +1,7 @@
 {
     "name": "smart-prices-localizer/smart-prices-localizer-client",
     "description": "PHP Client for the Dynamic Pricing and Real-Time Local Market Analysis System Smart Prices Localizer",
-    "version": "3.1.0",
+    "version": "3.2.0",
     "homepage": "http://www.smart-prices-localizer.com",
     "license": "LGPL-3.0",
     "authors": [

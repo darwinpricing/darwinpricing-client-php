@@ -2,6 +2,8 @@
 
 class FC_Smart_Client_Cache {
 
+	const APC_TTL = 3600;
+
 	/** @var bool */
 	protected static $_apcEnabled = null;
 
@@ -134,6 +136,6 @@ class FC_Smart_Client_Cache {
 		if(!self::_isApcEnabled()) {
 			return false;
 		}
-		return apc_store($key, $value, 300);
+		return apc_store($key, $value, self::APC_TTL);
 	}
 }
