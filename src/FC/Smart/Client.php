@@ -45,17 +45,34 @@ class FC_Smart_Client {
 	}
 
 	/**
-	 * @param FC_Smart_Client_Price $profit
-	 * @param null                  $visitorId
+	 * @param FC_Smart_Client_Price $profit    Your margin for this purchase (negative for chargebacks)
+	 * @param string|null           $visitorId The ID of the customer on your system, if any
 	 *
 	 * @throws FC_Smart_Client_Exception_MissingParameter
-	 * @return bool
+	 * @return bool true on success, false on failure
 	 */
 	public function addPayment(FC_Smart_Client_Price $profit, $visitorId = null) {
 		if((null === $visitorId) && (null === $this->_visitorIp)) {
 			throw new FC_Smart_Client_Exception_MissingParameter('Missing argument `$visitorId`');
 		}
 		return $this->_addPayment((string) $profit, $visitorId);
+	}
+
+	/**
+	 * @param string|null $visitorId The ID of the visitor or customer on your system, if any
+	 *
+	 * @throws FC_Smart_Client_Exception_MissingParameter
+	 * @return string
+	 */
+	public function getDiscountCode($visitorId = null) {
+		if((null === $visitorId) && (null === $this->_visitorIp)) {
+			throw new FC_Smart_Client_Exception_MissingParameter('Missing argument `$visitorId`');
+		}
+		$discountCode = $this->_getDiscountCode($visitorId);
+		if((null !== $discountCode) && isset($discountCode['discount-code'])) {
+			return (string) $discountCode['discount-code'];
+		}
+		return '';
 	}
 
 	/**
@@ -122,7 +139,7 @@ class FC_Smart_Client {
 			'profit'     => (string) $profit,
 			'visitor-id' => $visitorId,
 		);
-		$url = $this->_serverUrl . '/add-payment?' . http_build_query($parameterList);
+		$url = $this->_serverUrl . '/add-payment.php?' . http_build_query($parameterList);
 		return $this->_httpPost($url);
 	}
 
@@ -134,6 +151,32 @@ class FC_Smart_Client {
 	 */
 	protected function _curlExec($ch) {
 		return curl_exec($ch);
+	}
+
+	/**
+	 * @param string|null $visitorId
+	 *
+	 * @return array|null
+	 */
+	protected function _getDiscountCode($visitorId = null) {
+		$parameterList = array(
+			'site-id'    => $this->_siteId,
+			'hash'       => $this->_hash,
+			'visitor-ip' => $this->_visitorIp,
+		);
+		if(null !== $visitorId) {
+			$parameterList['visitor-id'] = (string) $visitorId;
+		}
+		$url = $this->_serverUrl . '/get-discount-code.php?' . http_build_query($parameterList);
+		$result = $this->_httpGet($url);
+		if(null === $result) {
+			return null;
+		}
+		$discountCode = json_decode($result, true);
+		if(!is_array($discountCode)) {
+			return null;
+		}
+		return $discountCode;
 	}
 
 	/**
@@ -152,7 +195,7 @@ class FC_Smart_Client {
 		if(null !== $visitorId) {
 			$parameterList['visitor-id'] = (string) $visitorId;
 		}
-		$url = $this->_serverUrl . '/get-dynamic-price?' . http_build_query($parameterList);
+		$url = $this->_serverUrl . '/get-dynamic-price.php?' . http_build_query($parameterList);
 		$result = $this->_httpGet($url);
 		if(null === $result) {
 			return null;
@@ -177,7 +220,7 @@ class FC_Smart_Client {
 			$ch = curl_init($url);
 			curl_setopt_array($ch, array(
 			                            CURLOPT_RETURNTRANSFER => true,
-			                            CURLOPT_TIMEOUT_MS     => 500,
+			                            CURLOPT_TIMEOUT_MS     => 3000,
 			                       ));
 			$result = $this->_curlExec($ch);
 			if(!is_string($result)) {
@@ -198,7 +241,7 @@ class FC_Smart_Client {
 		$ch = curl_init($url);
 		curl_setopt_array($ch, array(
 		                            CURLOPT_POST       => true,
-		                            CURLOPT_TIMEOUT_MS => 500,
+		                            CURLOPT_TIMEOUT_MS => 3000,
 		                       ));
 		return $this->_curlExec($ch);
 	}
