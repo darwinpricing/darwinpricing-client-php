@@ -139,8 +139,8 @@ class FC_Smart_Client {
 			'profit'     => (string) $profit,
 			'visitor-id' => $visitorId,
 		);
-		$url = $this->_serverUrl . '/add-payment.php?' . http_build_query($parameterList);
-		return $this->_httpPost($url);
+		$url = $this->_serverUrl . '/add-payment.php';
+		return $this->_httpPost($url, $parameterList);
 	}
 
 	/**
@@ -223,6 +223,7 @@ class FC_Smart_Client {
 			                            CURLOPT_TIMEOUT_MS     => 3000,
 			                       ));
 			$result = $this->_curlExec($ch);
+			curl_close($ch);
 			if(!is_string($result)) {
 				return null;
 			}
@@ -233,16 +234,20 @@ class FC_Smart_Client {
 
 	/**
 	 * @param string $url
+	 * @param array  $parameterList
 	 *
 	 * @return bool
 	 */
-	protected function _httpPost($url) {
+	protected function _httpPost($url, $parameterList) {
 		$url = (string) $url;
 		$ch = curl_init($url);
 		curl_setopt_array($ch, array(
 		                            CURLOPT_POST       => true,
+		                            CURLOPT_POSTFIELDS => http_build_query($parameterList),
 		                            CURLOPT_TIMEOUT_MS => 3000,
 		                       ));
-		return $this->_curlExec($ch);
+		$result = $this->_curlExec($ch);
+		curl_close($ch);
+		return $result;
 	}
 }
