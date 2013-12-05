@@ -355,17 +355,19 @@ class FCTest_Smart_ClientTest extends PHPUnit_Framework_TestCase {
 			$clientConfig = array($serverUrl, 123456, 'abc', $visitorIp);
 			$client = $this->getMockBuilder('FC_Smart_Client')->setMethods(array('_httpPost'))->setConstructorArgs($clientConfig)->getMock();
 			$client->expects($this->any())->method('_httpPost')->will($this->returnValue($return));
-			$urlExpected = $serverUrl . '/add-payment.php?site-id=123456&hash=abc';
-			if(null !== $visitorIp) {
-				$urlExpected .= '&visitor-ip=' . $visitorIp;
-			} elseif(isset($_SERVER['REMOTE_ADDR'])) {
-				$urlExpected .= '&visitor-ip=' . $_SERVER['REMOTE_ADDR'];
+			$urlExpected = $serverUrl . '/add-payment.php';
+			$parameterListExpected = array(
+				'site-id' => 123456,
+				'hash'    => 'abc',
+			);
+			if(isset($_SERVER['REMOTE_ADDR'])) {
+				$parameterListExpected['visitor-ip'] = $_SERVER['REMOTE_ADDR'];
+			} else {
+				$parameterListExpected['visitor-ip'] = $visitorIp;
 			}
-			$urlExpected .= '&profit=' . $profit;
-			if(null !== $visitorId) {
-				$urlExpected .= '&visitor-id=' . $visitorId;
-			}
-			$client->expects($this->once())->method('_httpPost')->with($urlExpected);
+			$parameterListExpected['profit'] = (string) $profit;
+			$parameterListExpected['visitor-id'] = $visitorId;
+			$client->expects($this->once())->method('_httpPost')->with($urlExpected, $parameterListExpected);
 
 			$this->assertSame($return, $client->addPayment($profit, $visitorId));
 		}
@@ -474,6 +476,6 @@ class FCTest_Smart_ClientTest extends PHPUnit_Framework_TestCase {
 		$class = new ReflectionClass($client);
 		$_httpPost = $class->getMethod('_httpPost');
 		$_httpPost->setAccessible(true);
-		$this->assertSame($curlResultMock, $_httpPost->invokeArgs($client, array($url)));
+		$this->assertSame($curlResultMock, $_httpPost->invokeArgs($client, array($url, array())));
 	}
 }
