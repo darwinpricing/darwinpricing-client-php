@@ -1,7 +1,7 @@
 {
     "name": "darwinpricing/darwinpricing-client",
     "description": "PHP Client for the Dynamic Pricing and Real-Time Local Market Analysis System Darwin Pricing",
-    "version": "3.2.2",
+    "version": "4.0.0",
     "homepage": "http://www.darwinpricing.com",
     "license": "LGPL-3.0",
     "authors": [
