@@ -168,7 +168,7 @@ class DarwinPricing_Client {
      */
     protected function _getCache() {
         if (!isset($this->_cache)) {
-            $this->_cache = new DarwinPricing_Client_Cache_Local();
+            $this->setCacheImplementation(new DarwinPricing_Client_Cache_Local());
         }
         return $this->_cache;
     }
