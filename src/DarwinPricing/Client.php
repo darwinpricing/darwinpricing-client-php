@@ -2,6 +2,9 @@
 
 class DarwinPricing_Client {
 
+    /** @var DarwinPricing_Client_CacheInterface|null */
+    protected $_cache;
+
     /** @var string */
     protected $_hash;
 
@@ -123,6 +126,13 @@ class DarwinPricing_Client {
     }
 
     /**
+     * @param DarwinPricing_Client_CacheInterface $cache
+     */
+    public function setCacheImplementation(DarwinPricing_Client_CacheInterface $cache) {
+        $this->_cache = $cache;
+    }
+
+    /**
      * @param string      $profit
      * @param string|null $visitorId
      *
@@ -151,6 +161,16 @@ class DarwinPricing_Client {
      */
     protected function _curlExec($ch) {
         return curl_exec($ch);
+    }
+
+    /**
+     * @return DarwinPricing_Client_CacheInterface
+     */
+    protected function _getCache() {
+        if (!isset($this->_cache)) {
+            $this->_cache = new DarwinPricing_Client_Cache();
+        }
+        return $this->_cache;
     }
 
     /**
@@ -215,7 +235,7 @@ class DarwinPricing_Client {
     protected function _httpGet($url) {
         $url = (string) $url;
         $cacheKey = __CLASS__ . '::' . __METHOD__ . '(' . $url . ')';
-        $cache = new DarwinPricing_Client_Cache();
+        $cache = $this->_getCache();
         $result = $cache->get($cacheKey);
         if (false === $result) {
             $ch = curl_init($url);

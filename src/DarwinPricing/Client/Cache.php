@@ -1,6 +1,6 @@
 <?php
 
-class DarwinPricing_Client_Cache {
+class DarwinPricing_Client_Cache implements DarwinPricing_Client_CacheInterface {
 
     protected $_ttl = 3600;
 
