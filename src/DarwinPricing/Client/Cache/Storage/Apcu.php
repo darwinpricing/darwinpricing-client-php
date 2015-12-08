@@ -1,21 +1,21 @@
 <?php
 
-class DarwinPricing_Client_CacheStorage_Apc extends DarwinPricing_Client_CacheStorage_Abstract {
+class DarwinPricing_Client_Cache_Storage_Apcu extends DarwinPricing_Client_Cache_Storage_Abstract {
 
     protected $_ttl = 3600;
 
     public function delete($key) {
         $key = (string) $key;
-        apc_delete($key);
+        apcu_delete($key);
     }
 
     public function flush() {
-        apc_clear_cache('user');
+        apcu_clear_cache();
     }
 
     public function get($key) {
         $key = (string) $key;
-        return apc_fetch($key);
+        return apcu_fetch($key);
     }
 
     /**
@@ -27,7 +27,7 @@ class DarwinPricing_Client_CacheStorage_Apc extends DarwinPricing_Client_CacheSt
 
     public function set($key, $value) {
         $key = (string) $key;
-        apc_store($key, $value, $this->getTtl());
+        apcu_store($key, $value, $this->getTtl());
     }
 
     /**

@@ -1,10 +1,10 @@
 <?php
 
-class DarwinPricing_Client_Cache implements DarwinPricing_Client_CacheInterface {
+class DarwinPricing_Client_Cache_Local implements DarwinPricing_Client_Cache_Interface {
 
     protected $_ttl = 3600;
 
-    /** @var DarwinPricing_Client_CacheStorage_Abstract|false|null */
+    /** @var DarwinPricing_Client_Cache_Storage_Abstract|false|null */
     protected static $_cacheStorageApcu, $_cacheStorageRuntime;
 
     /**
@@ -74,24 +74,24 @@ class DarwinPricing_Client_Cache implements DarwinPricing_Client_CacheInterface 
     }
 
     /**
-     * @return DarwinPricing_Client_CacheStorage_Runtime
+     * @return DarwinPricing_Client_Cache_Storage_Runtime
      */
     protected static function _getCacheStorageRuntime() {
         if (!isset(self::$_cacheStorageRuntime)) {
-            self::$_cacheStorageRuntime = new DarwinPricing_Client_CacheStorage_Runtime();
+            self::$_cacheStorageRuntime = new DarwinPricing_Client_Cache_Storage_Runtime();
         }
         return self::$_cacheStorageRuntime;
     }
 
     /**
-     * @return DarwinPricing_Client_CacheStorage_Apcu|DarwinPricing_Client_CacheStorage_Apc|false
+     * @return DarwinPricing_Client_Cache_Storage_Apcu|DarwinPricing_Client_CacheStorage_Apc|false
      */
     protected static function _getCacheStorageApcu() {
         if (!isset(self::$_cacheStorageApcu)) {
             if (function_exists('apcu_fetch')) {
-                self::$_cacheStorageApcu = new DarwinPricing_Client_CacheStorage_Apcu();
+                self::$_cacheStorageApcu = new DarwinPricing_Client_Cache_Storage_Apcu();
             } elseif (function_exists('apc_fetch')) {
-                self::$_cacheStorageApcu = new DarwinPricing_Client_CacheStorage_Apc();
+                self::$_cacheStorageApcu = new DarwinPricing_Client_Cache_Storage_Apc();
             } else {
                 self::$_cacheStorageApcu = false;
             }

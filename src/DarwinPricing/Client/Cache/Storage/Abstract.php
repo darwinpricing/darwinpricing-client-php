@@ -1,6 +1,6 @@
 <?php
 
-abstract class DarwinPricing_Client_CacheStorage_Abstract {
+abstract class DarwinPricing_Client_Cache_Storage_Abstract {
 
     /**
      * @param string $key

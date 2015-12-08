@@ -2,7 +2,7 @@
 
 class DarwinPricing_Client {
 
-    /** @var DarwinPricing_Client_CacheInterface|null */
+    /** @var DarwinPricing_Client_Cache_Interface|null */
     protected $_cache;
 
     /** @var string */
@@ -126,9 +126,9 @@ class DarwinPricing_Client {
     }
 
     /**
-     * @param DarwinPricing_Client_CacheInterface $cache
+     * @param DarwinPricing_Client_Cache_Interface $cache
      */
-    public function setCacheImplementation(DarwinPricing_Client_CacheInterface $cache) {
+    public function setCacheImplementation(DarwinPricing_Client_Cache_Interface $cache) {
         $this->_cache = $cache;
     }
 
@@ -164,11 +164,11 @@ class DarwinPricing_Client {
     }
 
     /**
-     * @return DarwinPricing_Client_CacheInterface
+     * @return DarwinPricing_Client_Cache_Interface
      */
     protected function _getCache() {
         if (!isset($this->_cache)) {
-            $this->_cache = new DarwinPricing_Client_Cache();
+            $this->_cache = new DarwinPricing_Client_Cache_Local();
         }
         return $this->_cache;
     }

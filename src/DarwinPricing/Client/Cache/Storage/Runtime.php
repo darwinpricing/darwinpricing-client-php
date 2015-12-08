@@ -1,6 +1,6 @@
 <?php
 
-class DarwinPricing_Client_CacheStorage_Runtime extends DarwinPricing_Client_CacheStorage_Abstract {
+class DarwinPricing_Client_Cache_Storage_Runtime extends DarwinPricing_Client_Cache_Storage_Abstract {
 
     protected static $_cache = array();
 

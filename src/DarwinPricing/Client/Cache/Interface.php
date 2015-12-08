@@ -1,6 +1,6 @@
 <?php
 
-interface DarwinPricing_Client_CacheInterface {
+interface DarwinPricing_Client_Cache_Interface {
 
     /**
      * @param string $key
