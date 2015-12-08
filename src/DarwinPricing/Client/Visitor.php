@@ -67,15 +67,18 @@ class DarwinPricing_Client_Visitor {
         $remoteIp = (string) $_SERVER['REMOTE_ADDR'];
         if (isset($_SERVER['SERVER_ADDR'])) {
             $serverIp = (string) $_SERVER['SERVER_ADDR'];
-            if ($remoteIp === $serverIp && isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-                $proxyIps = (string) $_SERVER['HTTP_X_FORWARDED_FOR'];
-                $proxyIpList = preg_split('#\\s*+,\\s*+#', trim($proxyIps));
-                array_reverse($proxyIpList);
-                foreach ($proxyIpList as $proxyIp) {
-                    if ($serverIp !== $proxyIp) {
-                        return $proxyIp;
+            if ($remoteIp === $serverIp) {
+                if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+                    $proxyIps = (string) $_SERVER['HTTP_X_FORWARDED_FOR'];
+                    $proxyIpList = preg_split('#\\s*+,\\s*+#', trim($proxyIps));
+                    array_reverse($proxyIpList);
+                    foreach ($proxyIpList as $proxyIp) {
+                        if ($serverIp !== $proxyIp) {
+                            return $proxyIp;
+                        }
                     }
                 }
+                return '';
             }
         }
         return $remoteIp;
