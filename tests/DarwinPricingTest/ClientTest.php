@@ -25,7 +25,7 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
     public function testConstruct_BackgroundJob() {
         unset($_SERVER['REMOTE_ADDR']);
         new DarwinPricing_Client('http://api.darwinpricing.com', 123456, 'abc');
-        new DarwinPricing_Client('http://api.darwinpricing.com', 123456, 'abc', '127.0.0.1');
+        new DarwinPricing_Client('http://api.darwinpricing.com', 123456, 'abc', new DarwinPricing_Client_Visitor('127.0.0.1'));
     }
 
     /**
@@ -314,8 +314,7 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testGetDynamicPriceList_InvalidResponse() {
-        $client = new DarwinPricing_Client('http://api.darwinpricing.com', 123456, 'abc');
-        $client->setVisitor(new DarwinPricing_Client_Visitor(null, '99'));
+        $client = new DarwinPricing_Client('http://api.darwinpricing.com', 123456, 'abc', new DarwinPricing_Client_Visitor(null, '99'));
         $transportMock = $this->_getTransportMock();
         $client->setTransportImplementation($transportMock);
         $parameterListExpected = array(
@@ -346,8 +345,7 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
         ) as $testData) {
             $expected = $testData['expected'];
             $curlReturn = $testData['curlReturn'];
-            $client = new DarwinPricing_Client('http://api.darwinpricing.com', 123456, 'abc');
-            $client->setVisitor(new DarwinPricing_Client_Visitor($visitorIp, $visitorId));
+            $client = new DarwinPricing_Client('http://api.darwinpricing.com', 123456, 'abc', new DarwinPricing_Client_Visitor($visitorIp, $visitorId));
             $transportMock = $this->_getTransportMock();
             $client->setTransportImplementation($transportMock);
             $parameterListExpected = array(
@@ -379,8 +377,7 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
     }
 
     protected function _testGetDiscountCode($discountCodeMock, $visitorId, $visitorIp = null) {
-        $client = new DarwinPricing_Client('http://api.darwinpricing.com', 123456, 'abc');
-        $client->setVisitor(new DarwinPricing_Client_Visitor($visitorIp, $visitorId));
+        $client = new DarwinPricing_Client('http://api.darwinpricing.com', 123456, 'abc', new DarwinPricing_Client_Visitor($visitorIp, $visitorId));
         $transportMock = $this->_getTransportMock();
         $client->setTransportImplementation($transportMock);
         $parameterListExpected = array(
@@ -412,8 +409,7 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
     }
 
     protected function _testGetDynamicPrice($serverUrl, $serverUrlExpected, $dynamicPriceMock, $referencePrice, $referencePriceExpected, $visitorId, $visitorIp = null) {
-        $client = new DarwinPricing_Client($serverUrl, 123456, 'abc');
-        $client->setVisitor(new DarwinPricing_Client_Visitor($visitorIp, $visitorId));
+        $client = new DarwinPricing_Client($serverUrl, 123456, 'abc', new DarwinPricing_Client_Visitor($visitorIp, $visitorId));
         $transportMock = $this->_getTransportMock();
         $client->setTransportImplementation($transportMock);
         $serverUrlExpected = isset($serverUrlExpected) ? $serverUrlExpected : $serverUrl;
@@ -448,8 +444,7 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
     }
 
     protected function _testGetDynamicPriceList($referencePriceList, $referencePriceExpected, $dynamicPriceListMock, $visitorId, $visitorIp = null) {
-        $client = new DarwinPricing_Client('http://api.darwinpricing.com', 123456, 'abc');
-        $client->setVisitor(new DarwinPricing_Client_Visitor($visitorIp, $visitorId));
+        $client = new DarwinPricing_Client('http://api.darwinpricing.com', 123456, 'abc', new DarwinPricing_Client_Visitor($visitorIp, $visitorId));
         $transportMock = $this->_getTransportMock();
         $client->setTransportImplementation($transportMock);
         $parameterListExpected = array(

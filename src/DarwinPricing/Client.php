@@ -21,18 +21,20 @@ class DarwinPricing_Client {
     protected $_cache;
 
     /**
-     * @param string $serverUrl    The URL of the API server for your website, e.g. https://api.darwinpricing.com
-     * @param int    $clientId     The client ID for your website
-     * @param string $clientSecret The client secret for your website
+     * @param string                            $serverUrl    The URL of the API server for your website, e.g. https://api.darwinpricing.com
+     * @param int                               $clientId     The client ID for your website
+     * @param string                            $clientSecret The client secret for your website
+     * @param DarwinPricing_Client_Visitor|null $visitor      Your website visitor
      */
-    public function __construct($serverUrl, $clientId, $clientSecret) {
+    public function __construct($serverUrl, $clientId, $clientSecret, DarwinPricing_Client_Visitor $visitor = null) {
         $this->setServerUrl($serverUrl);
         $this->setClientId($clientId);
         $this->setClientSecret($clientSecret);
+        $this->setVisitor($visitor);
     }
 
     /**
-     * @param DarwinPricing_Client_Price $profit Your margin for this purchase (negative for chargebacks)
+     * @param DarwinPricing_Client_Price $profit Your profit margin for this payment
      * @return bool true on success, false on failure
      */
     public function addPayment(DarwinPricing_Client_Price $profit) {
@@ -41,7 +43,7 @@ class DarwinPricing_Client {
     }
 
     /**
-     * @return string
+     * @return string The recommended discount code or pricing plan ID for your website visitor (empty by default)
      */
     public function getDiscountCode() {
         $discountCode = $this->_getDiscountCode();
@@ -53,7 +55,7 @@ class DarwinPricing_Client {
 
     /**
      * @param DarwinPricing_Client_Price $referencePrice The original price
-     * @return DarwinPricing_Client_Price
+     * @return DarwinPricing_Client_Price The recommended price for your website visitor
      */
     public function getDynamicPrice(DarwinPricing_Client_Price $referencePrice) {
         $dynamicPrice = $this->_getDynamicPrice((string) $referencePrice);
@@ -64,8 +66,8 @@ class DarwinPricing_Client {
     }
 
     /**
-     * @param DarwinPricing_Client_Price[] $referencePriceList The original prices
-     * @return DarwinPricing_Client_Price[]
+     * @param DarwinPricing_Client_Price[] $referencePriceList The original prices by product ID
+     * @return DarwinPricing_Client_Price[] The recommended prices by product ID for your website visitor
      */
     public function getDynamicPriceList(array $referencePriceList) {
         $dynamicPriceList = $this->_getDynamicPrice(implode(',', $referencePriceList));
@@ -82,14 +84,14 @@ class DarwinPricing_Client {
     }
 
     /**
-     * @param DarwinPricing_Client_Cache_Interface $cache
+     * @param DarwinPricing_Client_Cache_Interface $cache Your custom cache implementation (optional)
      */
     public function setCacheImplementation(DarwinPricing_Client_Cache_Interface $cache) {
         $this->_cache = $cache;
     }
 
     /**
-     * @param int $clientId
+     * @param int $clientId The client ID for your website
      */
     public function setClientId($clientId) {
         $clientId = (int) $clientId;
@@ -97,7 +99,7 @@ class DarwinPricing_Client {
     }
 
     /**
-     * @param string $clientSecret
+     * @param string $clientSecret The client secret for your website
      */
     public function setClientSecret($clientSecret) {
         $clientSecret = (string) $clientSecret;
@@ -105,7 +107,7 @@ class DarwinPricing_Client {
     }
 
     /**
-     * @param string $serverUrl
+     * @param string $serverUrl The URL of the API server for your website
      */
     public function setServerUrl($serverUrl) {
         $serverUrl = (string) $serverUrl;
@@ -122,14 +124,14 @@ class DarwinPricing_Client {
     }
 
     /**
-     * @param DarwinPricing_Client_Transport_Interface $transport
+     * @param DarwinPricing_Client_Transport_Interface $transport Your custom HTTP transport implementation (optional)
      */
     public function setTransportImplementation(DarwinPricing_Client_Transport_Interface $transport) {
         $this->_transport = $transport;
     }
 
     /**
-     * @param DarwinPricing_Client_Visitor|null $visitor
+     * @param DarwinPricing_Client_Visitor|null $visitor Your website visitor
      */
     public function setVisitor(DarwinPricing_Client_Visitor $visitor = null) {
         $this->_visitor = $visitor;
