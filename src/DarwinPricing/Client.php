@@ -6,10 +6,7 @@ class DarwinPricing_Client {
     protected $_cache;
 
     /** @var string */
-    protected $_hash;
-
-    /** @var string */
-    protected $_serverUrl;
+    protected $_serverUrl, $_siteSecret;
 
     /** @var int */
     protected $_siteId;
@@ -21,25 +18,14 @@ class DarwinPricing_Client {
     protected $_visitor;
 
     /**
-     * @param string $serverUrl The URL of your Darwin Pricing api server
-     * @param int    $siteId    The ID of your site
-     * @param string $hash      The secret hash code for your site
+     * @param string $serverUrl  The URL of your Darwin Pricing api server
+     * @param int    $siteId     The ID of your site
+     * @param string $siteSecret The secret hash code for your site
      */
-    public function __construct($serverUrl, $siteId, $hash) {
-        $serverUrlFiltered = filter_var((string) $serverUrl, FILTER_VALIDATE_URL);
-        if (false === $serverUrlFiltered) {
-            throw new DarwinPricing_Client_Exception_InvalidParameter("Invalid server URL `$serverUrl`");
-        }
-        $serverUrlParsed = parse_url($serverUrlFiltered);
-        if (isset($serverUrlParsed['query']) || isset($serverUrlParsed['fragment']) || (false !== strpos($serverUrlFiltered, '?')) || (false !== strpos($serverUrlFiltered, '#'))) {
-            throw new DarwinPricing_Client_Exception_InvalidParameter("Invalid server URL `$serverUrl`");
-        }
-        if (substr($serverUrlFiltered, -1) === '/') {
-            $serverUrlFiltered = substr($serverUrlFiltered, 0, -1);
-        }
-        $this->_serverUrl = $serverUrlFiltered;
-        $this->_siteId = (int) $siteId;
-        $this->_hash = (string) $hash;
+    public function __construct($serverUrl, $siteId, $siteSecret) {
+        $this->setServerUrl($serverUrl);
+        $this->setSiteId($siteId);
+        $this->setSiteSecret($siteSecret);
     }
 
     /**
@@ -97,6 +83,39 @@ class DarwinPricing_Client {
      */
     public function setCacheImplementation(DarwinPricing_Client_Cache_Interface $cache) {
         $this->_cache = $cache;
+    }
+
+    /**
+     * @param string $serverUrl
+     */
+    public function setServerUrl($serverUrl) {
+        $serverUrl = (string) $serverUrl;
+        $serverUrlFiltered = filter_var($serverUrl, FILTER_VALIDATE_URL);
+        if (false === $serverUrlFiltered) {
+            throw new DarwinPricing_Client_Exception_InvalidParameter("Invalid server URL `{$serverUrl}`");
+        }
+        $serverUrlParsed = parse_url($serverUrlFiltered);
+        if (isset($serverUrlParsed['query']) || isset($serverUrlParsed['fragment']) || (false !== strpos($serverUrlFiltered, '?')) || (false !== strpos($serverUrlFiltered, '#'))) {
+            throw new DarwinPricing_Client_Exception_InvalidParameter("Invalid server URL `{$serverUrl}`");
+        }
+        $serverUrlFiltered = rtrim($serverUrlFiltered, '/');
+        $this->_serverUrl = $serverUrlFiltered;
+    }
+
+    /**
+     * @param int $siteId
+     */
+    public function setSiteId($siteId) {
+        $siteId = (int) $siteId;
+        $this->_siteId = $siteId;
+    }
+
+    /**
+     * @param string $siteSecret
+     */
+    public function setSiteSecret($siteSecret) {
+        $siteSecret = (string) $siteSecret;
+        $this->_siteSecret = $siteSecret;
     }
 
     /**
@@ -163,7 +182,7 @@ class DarwinPricing_Client {
     protected function _getParameterList() {
         $parameterList = array(
             'site-id' => $this->_siteId,
-            'hash' => $this->_hash,
+            'hash' => $this->_siteSecret,
         );
         $this->_getVisitor()->check();
         $visitorId = $this->_getVisitor()->getId();
