@@ -508,6 +508,8 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
      * @return DarwinPricingTest_Client_Transport_CurlMock
      */
     protected function _getTransportMock() {
+        $cache = new DarwinPricing_Client_Cache_Local();
+        $cache->flush();
         return $this->getMockBuilder('DarwinPricing_Client_Transport_Curl')->setMethods(array('_curlExec'))->getMock();
     }
 

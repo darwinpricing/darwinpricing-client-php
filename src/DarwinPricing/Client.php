@@ -170,6 +170,26 @@ class DarwinPricing_Client {
     }
 
     /**
+     * @param string     $url
+     * @param array|null $parameterList
+     * @param array|null $headerList
+     * @return string|null
+     */
+    protected function _get($url, array $parameterList = null, array $headerList = null) {
+        $url = (string) $url;
+        $parameterList = (array) $parameterList;
+        $headerList = (array) $headerList;
+        $cacheKey = __METHOD__ . '(' . serialize($url) . ',' . serialize($parameterList) . ',' . serialize($headerList) . ')';
+        $cache = $this->_getCache();
+        $result = $cache->get($cacheKey);
+        if (false === $result) {
+            $result = $this->_getTransport()->get($url, $parameterList, $headerList);
+            $cache->set($cacheKey, $result);
+        }
+        return $result;
+    }
+
+    /**
      * @return DarwinPricing_Client_Cache_Interface
      */
     protected function _getCache() {
@@ -199,7 +219,7 @@ class DarwinPricing_Client {
             $parameterList['visitor-id'] = (string) $visitorId;
         }
         $url = $this->_serverUrl . '/get-discount-code';
-        $result = $this->_getTransport()->get($url, $parameterList);
+        $result = $this->_get($url, $parameterList);
         if (null === $result) {
             return null;
         }
@@ -233,7 +253,7 @@ class DarwinPricing_Client {
             $parameterList['visitor-id'] = (string) $visitorId;
         }
         $url = $this->_serverUrl . '/get-dynamic-price';
-        $result = $this->_getTransport()->get($url, $parameterList);
+        $result = $this->_get($url, $parameterList);
         if (null === $result) {
             return null;
         }
