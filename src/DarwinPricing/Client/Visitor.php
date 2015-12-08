@@ -5,6 +5,10 @@ class DarwinPricing_Client_Visitor {
     /** @var string|null */
     protected $_id, $_ip;
 
+    /**
+     * @param string|null $ip The IP address of this visitor
+     * @param string|null $id Your customer reference for this visitor
+     */
     function __construct($ip = null, $id = null) {
         $this->setIp($ip);
         $this->setId($id);
@@ -34,7 +38,7 @@ class DarwinPricing_Client_Visitor {
     }
 
     /**
-     * @param string|null $id Your customer reference for this visitor
+     * @param string|null $id
      */
     public function setId($id) {
         if (null !== $id) {
@@ -44,7 +48,7 @@ class DarwinPricing_Client_Visitor {
     }
 
     /**
-     * @param string|null $ip The IP address of this visitor
+     * @param string|null $ip
      */
     public function setIp($ip) {
         if (null !== $ip) {
