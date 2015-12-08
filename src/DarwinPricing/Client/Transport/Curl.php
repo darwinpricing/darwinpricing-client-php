@@ -42,7 +42,6 @@ class DarwinPricing_Client_Transport_Curl implements DarwinPricing_Client_Transp
     }
 
     public function post($url, array $parameterList = null, array $headerList = null) {
-        var_dump($url, $parameterList, $headerList);
         $url = (string) $url;
         $parameterList = (array) $parameterList;
         $headerList = (array) $headerList;

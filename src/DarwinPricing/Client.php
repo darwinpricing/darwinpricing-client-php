@@ -165,9 +165,7 @@ class DarwinPricing_Client {
             $parameterList['visitor-id'] = $visitorId;
         }
         $url = $this->_serverUrl . '/add-payment';
-        var_dump($url, $parameterList);
         $result = $this->_getTransport()->post($url, $parameterList);
-        var_dump($result);
         return null !== $result;
     }
 
