@@ -269,16 +269,18 @@ class DarwinPricing_Client {
     }
 
     /**
-     * @param string     $url
-     * @param array|null $parameterList
-     * @param array|null $headerList
+     * @param string      $url
+     * @param array|null  $parameterList
+     * @param string|null $body
+     * @param array|null  $headerList
      * @return string|null
      */
-    protected function _httpPost($url, array $parameterList = null, array $headerList = null) {
+    protected function _httpPost($url, array $parameterList = null, $body = null, array $headerList = null) {
         $url = (string) $url;
         $parameterList = (array) $parameterList;
+        $body = (string) $body;
         $headerList = (array) $headerList;
-        return $this->_getTransport()->post($url, $parameterList, $headerList);
+        return $this->_getTransport()->post($url, $parameterList, $body, $headerList);
     }
 
 }

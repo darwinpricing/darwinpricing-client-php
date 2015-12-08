@@ -11,10 +11,11 @@ interface DarwinPricing_Client_Transport_Interface {
     public function get($url, array $parameterList = null, array $headerList = null);
 
     /**
-     * @param string     $url
-     * @param array|null $parameterList
-     * @param array|null $headerList
+     * @param string      $url
+     * @param array|null  $parameterList
+     * @param string|null $body
+     * @param array|null  $headerList
      * @return string|null
      */
-    public function post($url, array $parameterList = null, array $headerList = null);
+    public function post($url, array $parameterList = null, $body = null, array $headerList = null);
 }

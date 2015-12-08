@@ -12,10 +12,11 @@ class DarwinPricing_Client_Transport_Curl implements DarwinPricing_Client_Transp
         if (!empty($parameterList)) {
             $query = http_build_query($parameterList);
             if (false === strpos($url, '?')) {
-                $url .= '?' . $query;
+                $url .= '?';
             } else {
-                $url .= '&' . $query;
+                $url .= '&';
             }
+            $url .= $query;
         }
         $optionList = array(
             CURLOPT_URL => $url,
@@ -41,10 +42,20 @@ class DarwinPricing_Client_Transport_Curl implements DarwinPricing_Client_Transp
         return $this->_timeout;
     }
 
-    public function post($url, array $parameterList = null, array $headerList = null) {
+    public function post($url, array $parameterList = null, $body = null, array $headerList = null) {
         $url = (string) $url;
         $parameterList = (array) $parameterList;
+        $body = (string) $body;
         $headerList = (array) $headerList;
+        if (!empty($parameterList)) {
+            $query = http_build_query($parameterList);
+            if (false === strpos($url, '?')) {
+                $url .= '?';
+            } else {
+                $url .= '&';
+            }
+            $url .= $query;
+        }
         $optionList = array(
             CURLOPT_POST => true,
             CURLOPT_URL => $url,
@@ -56,8 +67,8 @@ class DarwinPricing_Client_Transport_Curl implements DarwinPricing_Client_Transp
         if (!empty($headerList)) {
             $optionList[CURLOPT_HTTPHEADER] = $headerList;
         }
-        if (!empty($parameterList)) {
-            $optionList[CURLOPT_POSTFIELDS] = http_build_query($parameterList);
+        if ('' !== $body) {
+            $optionList[CURLOPT_POSTFIELDS] = $body;
         }
         $result = $this->_curlExec($optionList);
         if (!is_string($result)) {

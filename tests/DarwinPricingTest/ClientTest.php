@@ -363,12 +363,11 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
             $parameterListExpected['profit'] = (string) $profit;
             $optionListExpected = array(
                 CURLOPT_POST => true,
-                CURLOPT_URL => 'http://api.darwinpricing.com/add-payment',
+                CURLOPT_URL => 'http://api.darwinpricing.com/add-payment?' . http_build_query($parameterListExpected),
                 CURLOPT_SSL_VERIFYPEER => false,
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_TIMEOUT_MS => 3000,
-                CURLOPT_POSTFIELDS => http_build_query($parameterListExpected),
             );
             $transportMock->expects($this->once())->method('_curlExec')->with($optionListExpected)->will($this->returnValue($curlReturn));
 
