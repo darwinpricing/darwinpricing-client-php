@@ -2,20 +2,23 @@
 
 class DarwinPricing_Client {
 
-    /** @var DarwinPricing_Client_Cache_Interface|null */
-    protected $_cache;
-
     /** @var string */
-    protected $_serverUrl, $_siteSecret;
+    protected $_serverUrl;
 
     /** @var int */
     protected $_siteId;
 
-    /** @var DarwinPricing_Client_Transport_Interface|null */
-    protected $_transport;
+    /** @var string */
+    protected $_siteSecret;
 
     /** @var DarwinPricing_Client_Visitor|null */
     protected $_visitor;
+
+    /** @var DarwinPricing_Client_Transport_Interface|null */
+    protected $_transport;
+
+    /** @var DarwinPricing_Client_Cache_Interface|null */
+    protected $_cache;
 
     /**
      * @param string $serverUrl  The URL of your Darwin Pricing api server
