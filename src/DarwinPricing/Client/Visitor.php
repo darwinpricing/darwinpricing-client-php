@@ -16,7 +16,7 @@ class DarwinPricing_Client_Visitor {
 
     public function check() {
         if (null === $this->getId() && '' === $this->getIp()) {
-            throw new DarwinPricing_Client_Exception_MissingParameter('Visitor id missing');
+            throw new DarwinPricing_Client_Exception_MissingParameter('Visitor IP and visitor ID missing');
         }
     }
 

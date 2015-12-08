@@ -84,6 +84,13 @@ class DarwinPricing_Client {
     }
 
     /**
+     * @return string URL of the dynamic JavaScript widget (e.g. geo-targeted Exit Intent coupon box)
+     */
+    public function getWidgetUrl() {
+        return $this->_getUrl('/widget') . '?' . http_build_query($this->_getParameterList(true));
+    }
+
+    /**
      * @param DarwinPricing_Client_Cache_Interface $cache Your custom cache implementation (optional)
      */
     public function setCacheImplementation(DarwinPricing_Client_Cache_Interface $cache) {
@@ -182,21 +189,23 @@ class DarwinPricing_Client {
     }
 
     /**
+     * @param bool|null $public
      * @return array
      */
-    protected function _getParameterList() {
-        $parameterList = array(
-            'site-id' => $this->_clientId,
-            'hash' => $this->_clientSecret,
-        );
-        $this->_getVisitor()->check();
-        $visitorId = $this->_getVisitor()->getId();
-        $visitorIp = $this->_getVisitor()->getIp();
-        if ('' !== $visitorIp) {
-            $parameterList['visitor-ip'] = $visitorIp;
-        }
-        if (null !== $visitorId) {
-            $parameterList['visitor-id'] = $visitorId;
+    protected function _getParameterList($public = null) {
+        $public = (bool) $public;
+        $parameterList = array('site-id' => $this->_clientId);
+        if (!$public) {
+            $parameterList['hash'] = $this->_clientSecret;
+            $this->_getVisitor()->check();
+            $visitorIp = $this->_getVisitor()->getIp();
+            if ('' !== $visitorIp) {
+                $parameterList['visitor-ip'] = $visitorIp;
+            }
+            $visitorId = $this->_getVisitor()->getId();
+            if (null !== $visitorId) {
+                $parameterList['visitor-id'] = $visitorId;
+            }
         }
         return $parameterList;
     }

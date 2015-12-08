@@ -69,7 +69,7 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
 
     /**
      * @expectedException DarwinPricing_Client_Exception_MissingParameter
-     * @expectedExceptionMessage Visitor id missing
+     * @expectedExceptionMessage Visitor IP and visitor ID missing
      */
     public function testAddPayment_BackgroundJob_MissingParameter() {
         unset($_SERVER['REMOTE_ADDR']);
@@ -86,7 +86,7 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
 
     /**
      * @expectedException DarwinPricing_Client_Exception_MissingParameter
-     * @expectedExceptionMessage Visitor id missing
+     * @expectedExceptionMessage Visitor IP and visitor ID missing
      */
     public function testGetDiscountCode_BackgroundJob_MissingParameter() {
         unset($_SERVER['REMOTE_ADDR']);
@@ -130,7 +130,7 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
 
     /**
      * @expectedException DarwinPricing_Client_Exception_MissingParameter
-     * @expectedExceptionMessage Visitor id missing
+     * @expectedExceptionMessage Visitor IP and visitor ID missing
      */
     public function testGetDynamicPrice_BackgroundJob_MissingParameter() {
         unset($_SERVER['REMOTE_ADDR']);
@@ -301,7 +301,7 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
 
     /**
      * @expectedException DarwinPricing_Client_Exception_MissingParameter
-     * @expectedExceptionMessage Visitor id missing
+     * @expectedExceptionMessage Visitor IP and visitor ID missing
      */
     public function testGetDynamicPriceList_BackgroundJob_MissingParameter() {
         unset($_SERVER['REMOTE_ADDR']);
@@ -336,6 +336,12 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
         $referencePriceList = array(new DarwinPricing_Client_Price(123.45, 'USD'));
         $dynamicPriceListActual = $client->getDynamicPriceList($referencePriceList);
         $this->assertSame($referencePriceList, $dynamicPriceListActual);
+    }
+
+    public function testGetWidgetUrl() {
+        $client = new DarwinPricing_Client('https://api2.darwinpricing.com', 123456, 'abc');
+        $widgetUrl = $client->getWidgetUrl();
+        $this->assertSame('https://api2.darwinpricing.com/widget?site-id=123456', $widgetUrl);
     }
 
     protected function _testAddPayment($profit, $visitorId, $visitorIp = null) {
