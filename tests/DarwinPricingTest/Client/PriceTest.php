@@ -1,6 +1,6 @@
 <?php
 
-class DarwinPricingTest__Client_PriceTest extends PHPUnit_Framework_TestCase {
+class DarwinPricingTest_Client_PriceTest extends PHPUnit_Framework_TestCase {
 
     public function testConstruct() {
         new DarwinPricing_Client_Price(123);
