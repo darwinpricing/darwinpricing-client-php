@@ -6,10 +6,10 @@ class DarwinPricing_Client {
     protected $_serverUrl;
 
     /** @var int */
-    protected $_siteId;
+    protected $_clientId;
 
     /** @var string */
-    protected $_siteSecret;
+    protected $_clientSecret;
 
     /** @var DarwinPricing_Client_Visitor|null */
     protected $_visitor;
@@ -21,14 +21,14 @@ class DarwinPricing_Client {
     protected $_cache;
 
     /**
-     * @param string $serverUrl  The URL of your Darwin Pricing api server
-     * @param int    $siteId     The ID of your site
-     * @param string $siteSecret The secret hash code for your site
+     * @param string $serverUrl    The URL of the API server for your website, e.g. https://api.darwinpricing.com
+     * @param int    $clientId     The client ID for your website
+     * @param string $clientSecret The client secret for your website
      */
-    public function __construct($serverUrl, $siteId, $siteSecret) {
+    public function __construct($serverUrl, $clientId, $clientSecret) {
         $this->setServerUrl($serverUrl);
-        $this->setSiteId($siteId);
-        $this->setSiteSecret($siteSecret);
+        $this->setClientId($clientId);
+        $this->setClientSecret($clientSecret);
     }
 
     /**
@@ -89,6 +89,22 @@ class DarwinPricing_Client {
     }
 
     /**
+     * @param int $clientId
+     */
+    public function setClientId($clientId) {
+        $clientId = (int) $clientId;
+        $this->_clientId = $clientId;
+    }
+
+    /**
+     * @param string $clientSecret
+     */
+    public function setClientSecret($clientSecret) {
+        $clientSecret = (string) $clientSecret;
+        $this->_clientSecret = $clientSecret;
+    }
+
+    /**
      * @param string $serverUrl
      */
     public function setServerUrl($serverUrl) {
@@ -103,22 +119,6 @@ class DarwinPricing_Client {
         }
         $serverUrlFiltered = rtrim($serverUrlFiltered, '/');
         $this->_serverUrl = $serverUrlFiltered;
-    }
-
-    /**
-     * @param int $siteId
-     */
-    public function setSiteId($siteId) {
-        $siteId = (int) $siteId;
-        $this->_siteId = $siteId;
-    }
-
-    /**
-     * @param string $siteSecret
-     */
-    public function setSiteSecret($siteSecret) {
-        $siteSecret = (string) $siteSecret;
-        $this->_siteSecret = $siteSecret;
     }
 
     /**
@@ -184,8 +184,8 @@ class DarwinPricing_Client {
      */
     protected function _getParameterList() {
         $parameterList = array(
-            'site-id' => $this->_siteId,
-            'hash' => $this->_siteSecret,
+            'site-id' => $this->_clientId,
+            'hash' => $this->_clientSecret,
         );
         $this->_getVisitor()->check();
         $visitorId = $this->_getVisitor()->getId();
