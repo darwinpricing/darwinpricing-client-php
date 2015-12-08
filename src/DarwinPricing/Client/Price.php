@@ -3,20 +3,22 @@
 class DarwinPricing_Client_Price {
 
     /** @var string|null */
-    protected $_currency = null;
+    protected $_currency;
 
     /** @var float */
     protected $_value;
 
     /**
-     * @param float       $value
-     * @param string|null $currency
+     * @param float       $value    Money value, positive for profits, negative for losses
+     * @param string|null $currency Currency code (3 letters code according to ISO 4217)
      */
     public function __construct($value, $currency = null) {
-        $this->_value = (float) $value;
+        $value = (float) $value;
         if (null !== $currency) {
-            $this->_currency = (string) $currency;
+            $currency = (string) $currency;
         }
+        $this->_value = $value;
+        $this->_currency = $currency;
     }
 
     /**
@@ -50,9 +52,7 @@ class DarwinPricing_Client_Price {
     }
 
     /**
-     * @param array $price string|null currency, float value
-     *
-     * @throws DarwinPricing_Client_Exception_InvalidParameter
+     * @param array $price float value, string|null currency
      * @return DarwinPricing_Client_Price
      */
     public static function fromArray($price) {
