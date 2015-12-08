@@ -17,18 +17,15 @@ class DarwinPricing_Client {
     /** @var DarwinPricing_Client_Transport_Interface|null */
     protected $_transport;
 
-    /** @var string */
-    protected $_visitorIp;
+    /** @var DarwinPricing_Client_Visitor|null */
+    protected $_visitor;
 
     /**
-     * @param string      $serverUrl The URL of your Darwin Pricing api server
-     * @param int         $siteId    The ID of your site
-     * @param string      $hash      The secret hash code for your site
-     * @param string|null $visitorIp The stored IP address of the visitor, for background jobs
-     *
-     * @throws DarwinPricing_Client_Exception_InvalidParameter
+     * @param string $serverUrl The URL of your Darwin Pricing api server
+     * @param int    $siteId    The ID of your site
+     * @param string $hash      The secret hash code for your site
      */
-    public function __construct($serverUrl, $siteId, $hash, $visitorIp = null) {
+    public function __construct($serverUrl, $siteId, $hash) {
         $serverUrlFiltered = filter_var((string) $serverUrl, FILTER_VALIDATE_URL);
         if (false === $serverUrlFiltered) {
             throw new DarwinPricing_Client_Exception_InvalidParameter("Invalid server URL `$serverUrl`");
@@ -43,39 +40,23 @@ class DarwinPricing_Client {
         $this->_serverUrl = $serverUrlFiltered;
         $this->_siteId = (int) $siteId;
         $this->_hash = (string) $hash;
-        if (null !== $visitorIp) {
-            $this->_visitorIp = (string) $visitorIp;
-        } else {
-            $this->_visitorIp = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : null;
-        }
     }
 
     /**
-     * @param DarwinPricing_Client_Price $profit    Your margin for this purchase (negative for chargebacks)
-     * @param string|null           $visitorId The ID of the customer on your system, if any
-     *
-     * @throws DarwinPricing_Client_Exception_MissingParameter
+     * @param DarwinPricing_Client_Price $profit Your margin for this purchase (negative for chargebacks)
      * @return bool true on success, false on failure
      */
-    public function addPayment(DarwinPricing_Client_Price $profit, $visitorId = null) {
-        if ((null === $visitorId) && (null === $this->_visitorIp)) {
-            throw new DarwinPricing_Client_Exception_MissingParameter('Missing argument `$visitorId`');
-        }
-        return $this->_addPayment((string) $profit, $visitorId);
+    public function addPayment(DarwinPricing_Client_Price $profit) {
+        $profit = (string) $profit;
+        return $this->_addPayment($profit);
     }
 
     /**
-     * @param string|null $visitorId The ID of the visitor or customer on your system, if any
-     *
-     * @throws DarwinPricing_Client_Exception_MissingParameter
      * @return string
      */
-    public function getDiscountCode($visitorId = null) {
-        if ((null === $visitorId) && (null === $this->_visitorIp)) {
-            throw new DarwinPricing_Client_Exception_MissingParameter('Missing argument `$visitorId`');
-        }
-        $discountCode = $this->_getDiscountCode($visitorId);
-        if ((null !== $discountCode) && isset($discountCode['discount-code'])) {
+    public function getDiscountCode() {
+        $discountCode = $this->_getDiscountCode();
+        if (isset($discountCode) && isset($discountCode['discount-code'])) {
             return (string) $discountCode['discount-code'];
         }
         return '';
@@ -83,17 +64,11 @@ class DarwinPricing_Client {
 
     /**
      * @param DarwinPricing_Client_Price $referencePrice The original price
-     * @param string|null           $visitorId      The ID of the visitor or customer on your system, if any
-     *
-     * @throws DarwinPricing_Client_Exception_MissingParameter
      * @return DarwinPricing_Client_Price
      */
-    public function getDynamicPrice(DarwinPricing_Client_Price $referencePrice, $visitorId = null) {
-        if ((null === $visitorId) && (null === $this->_visitorIp)) {
-            throw new DarwinPricing_Client_Exception_MissingParameter('Missing argument `$visitorId`');
-        }
-        $dynamicPrice = $this->_getDynamicPrice((string) $referencePrice, $visitorId);
-        if (null !== $dynamicPrice) {
+    public function getDynamicPrice(DarwinPricing_Client_Price $referencePrice) {
+        $dynamicPrice = $this->_getDynamicPrice((string) $referencePrice);
+        if (isset($dynamicPrice)) {
             return DarwinPricing_Client_Price::fromArray($dynamicPrice);
         }
         return $referencePrice;
@@ -101,26 +76,15 @@ class DarwinPricing_Client {
 
     /**
      * @param DarwinPricing_Client_Price[] $referencePriceList The original prices
-     * @param string|null             $visitorId          The ID of the visitor or customer on your system, if any
-     *
-     * @throws DarwinPricing_Client_Exception_InvalidParameter
-     * @throws DarwinPricing_Client_Exception_MissingParameter
      * @return DarwinPricing_Client_Price[]
      */
-    public function getDynamicPriceList($referencePriceList, $visitorId = null) {
-        if (!is_array($referencePriceList)) {
-            throw new DarwinPricing_Client_Exception_InvalidParameter('Invalid reference price list `' . serialize($referencePriceList) . '`');
-        }
-        if ((null === $visitorId) && (null === $this->_visitorIp)) {
-            throw new DarwinPricing_Client_Exception_MissingParameter('Missing argument `$visitorId`');
-        }
-        $referencePrices = implode(',', $referencePriceList);
-        $dynamicPrices = $this->_getDynamicPrice($referencePrices, $visitorId);
-        if (null !== $dynamicPrices) {
+    public function getDynamicPriceList(array $referencePriceList) {
+        $dynamicPriceList = $this->_getDynamicPrice(implode(',', $referencePriceList));
+        if (isset($dynamicPriceList)) {
             $i = 0;
-            foreach ($referencePriceList as $key => $referencePrice) {
-                if (isset($dynamicPrices[$i])) {
-                    $referencePriceList[$key] = DarwinPricing_Client_Price::fromArray($dynamicPrices[$i]);
+            foreach (array_keys($referencePriceList) as $key) {
+                if (isset($dynamicPriceList[$i])) {
+                    $referencePriceList[$key] = DarwinPricing_Client_Price::fromArray($dynamicPriceList[$i]);
                 }
                 $i++;
             }
@@ -143,30 +107,23 @@ class DarwinPricing_Client {
     }
 
     /**
-     * @param string      $profit
-     * @param string|null $visitorId
-     *
+     * @param DarwinPricing_Client_Visitor|null $visitor
+     */
+    public function setVisitor(DarwinPricing_Client_Visitor $visitor = null) {
+        $this->_visitor = $visitor;
+    }
+
+    /**
+     * @param string $profit
      * @return bool
      */
-    protected function _addPayment($profit, $visitorId = null) {
+    protected function _addPayment($profit) {
         $profit = (string) $profit;
-        if (null !== $visitorId) {
-            $visitorId = (string) $visitorId;
-        }
-        $parameterList = array(
-            'site-id' => $this->_siteId,
-            'hash' => $this->_hash,
-            'profit' => $profit,
-        );
-        if (null !== $this->_visitorIp) {
-            $parameterList['visitor-ip'] = $this->_visitorIp;
-        }
-        if (null !== $visitorId) {
-            $parameterList['visitor-id'] = $visitorId;
-        }
-        $url = $this->_serverUrl . '/add-payment';
-        $result = $this->_getTransport()->post($url, $parameterList);
-        return null !== $result;
+        $url = $this->_getUrl('/add-payment');
+        $parameterList = $this->_getParameterList();
+        $parameterList['profit'] = $profit;
+        $result = $this->_post($url, $parameterList);
+        return isset($result);
     }
 
     /**
@@ -200,25 +157,11 @@ class DarwinPricing_Client {
     }
 
     /**
-     * @param string|null $visitorId
-     *
      * @return array|null
      */
-    protected function _getDiscountCode($visitorId = null) {
-        if (null !== $visitorId) {
-            $visitorId = (string) $visitorId;
-        }
-        $parameterList = array(
-            'site-id' => $this->_siteId,
-            'hash' => $this->_hash,
-        );
-        if (null !== $this->_visitorIp) {
-            $parameterList['visitor-ip'] = $this->_visitorIp;
-        }
-        if (null !== $visitorId) {
-            $parameterList['visitor-id'] = (string) $visitorId;
-        }
-        $url = $this->_serverUrl . '/get-discount-code';
+    protected function _getDiscountCode() {
+        $url = $this->_getUrl('/get-discount-code');
+        $parameterList = $this->_getParameterList();
         $result = $this->_get($url, $parameterList);
         if (null === $result) {
             return null;
@@ -231,28 +174,14 @@ class DarwinPricing_Client {
     }
 
     /**
-     * @param string      $referencePrice
-     * @param string|null $visitorId
-     *
+     * @param string $referencePrice
      * @return array|null
      */
-    protected function _getDynamicPrice($referencePrice, $visitorId = null) {
+    protected function _getDynamicPrice($referencePrice) {
         $referencePrice = (string) $referencePrice;
-        if (null !== $visitorId) {
-            $visitorId = (string) $visitorId;
-        }
-        $parameterList = array(
-            'site-id' => $this->_siteId,
-            'hash' => $this->_hash,
-            'reference-price' => $referencePrice,
-        );
-        if (null !== $this->_visitorIp) {
-            $parameterList['visitor-ip'] = $this->_visitorIp;
-        }
-        if (null !== $visitorId) {
-            $parameterList['visitor-id'] = (string) $visitorId;
-        }
-        $url = $this->_serverUrl . '/get-dynamic-price';
+        $url = $this->_getUrl('/get-dynamic-price');
+        $parameterList = $this->_getParameterList();
+        $parameterList['reference-price'] = $referencePrice;
         $result = $this->_get($url, $parameterList);
         if (null === $result) {
             return null;
@@ -265,6 +194,26 @@ class DarwinPricing_Client {
     }
 
     /**
+     * @return array
+     */
+    protected function _getParameterList() {
+        $parameterList = array(
+            'site-id' => $this->_siteId,
+            'hash' => $this->_hash,
+        );
+        $this->_getVisitor()->check();
+        $visitorId = $this->_getVisitor()->getId();
+        $visitorIp = $this->_getVisitor()->getIp();
+        if ('' !== $visitorIp) {
+            $parameterList['visitor-ip'] = $visitorIp;
+        }
+        if (null !== $visitorId) {
+            $parameterList['visitor-id'] = $visitorId;
+        }
+        return $parameterList;
+    }
+
+    /**
      * @return DarwinPricing_Client_Transport_Interface
      */
     protected function _getTransport() {
@@ -272,6 +221,38 @@ class DarwinPricing_Client {
             $this->setTransportImplementation(new DarwinPricing_Client_Transport_Curl());
         }
         return $this->_transport;
+    }
+
+    /**
+     * @param string $path
+     * @return string
+     */
+    protected function _getUrl($path) {
+        $path = (string) $path;
+        return $this->_serverUrl . $path;
+    }
+
+    /**
+     * @return DarwinPricing_Client_Visitor
+     */
+    protected function _getVisitor() {
+        if (null === $this->_visitor) {
+            $this->_visitor = new DarwinPricing_Client_Visitor();
+        }
+        return $this->_visitor;
+    }
+
+    /**
+     * @param string     $url
+     * @param array|null $parameterList
+     * @param array|null $headerList
+     * @return string|null
+     */
+    protected function _post($url, array $parameterList = null, array $headerList = null) {
+        $url = (string) $url;
+        $parameterList = (array) $parameterList;
+        $headerList = (array) $headerList;
+        return $this->_getTransport()->post($url, $parameterList, $headerList);
     }
 
 }
