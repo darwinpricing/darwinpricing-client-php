@@ -14,6 +14,9 @@ class DarwinPricing_Client {
     /** @var int */
     protected $_siteId;
 
+    /** @var DarwinPricing_Client_Transport_Interface|null */
+    protected $_transport;
+
     /** @var string */
     protected $_visitorIp;
 
@@ -133,34 +136,39 @@ class DarwinPricing_Client {
     }
 
     /**
+     * @param DarwinPricing_Client_Transport_Interface $transport
+     */
+    public function setTransportImplementation(DarwinPricing_Client_Transport_Interface $transport) {
+        $this->_transport = $transport;
+    }
+
+    /**
      * @param string      $profit
      * @param string|null $visitorId
      *
      * @return bool
      */
     protected function _addPayment($profit, $visitorId = null) {
+        $profit = (string) $profit;
         if (null !== $visitorId) {
             $visitorId = (string) $visitorId;
         }
         $parameterList = array(
             'site-id' => $this->_siteId,
             'hash' => $this->_hash,
-            'visitor-ip' => $this->_visitorIp,
-            'profit' => (string) $profit,
-            'visitor-id' => $visitorId,
+            'profit' => $profit,
         );
-        $url = $this->_serverUrl . '/add-payment.php';
-        return $this->_httpPost($url, $parameterList);
-    }
-
-    /**
-     * @param resource $ch
-     *
-     * @codeCoverageIgnore
-     * @return mixed
-     */
-    protected function _curlExec($ch) {
-        return curl_exec($ch);
+        if (null !== $this->_visitorIp) {
+            $parameterList['visitor-ip'] = $this->_visitorIp;
+        }
+        if (null !== $visitorId) {
+            $parameterList['visitor-id'] = $visitorId;
+        }
+        $url = $this->_serverUrl . '/add-payment';
+        var_dump($url, $parameterList);
+        $result = $this->_getTransport()->post($url, $parameterList);
+        var_dump($result);
+        return null !== $result;
     }
 
     /**
@@ -179,16 +187,21 @@ class DarwinPricing_Client {
      * @return array|null
      */
     protected function _getDiscountCode($visitorId = null) {
+        if (null !== $visitorId) {
+            $visitorId = (string) $visitorId;
+        }
         $parameterList = array(
             'site-id' => $this->_siteId,
             'hash' => $this->_hash,
-            'visitor-ip' => $this->_visitorIp,
         );
+        if (null !== $this->_visitorIp) {
+            $parameterList['visitor-ip'] = $this->_visitorIp;
+        }
         if (null !== $visitorId) {
             $parameterList['visitor-id'] = (string) $visitorId;
         }
-        $url = $this->_serverUrl . '/get-discount-code.php?' . http_build_query($parameterList);
-        $result = $this->_httpGet($url);
+        $url = $this->_serverUrl . '/get-discount-code';
+        $result = $this->_getTransport()->get($url, $parameterList);
         if (null === $result) {
             return null;
         }
@@ -206,17 +219,23 @@ class DarwinPricing_Client {
      * @return array|null
      */
     protected function _getDynamicPrice($referencePrice, $visitorId = null) {
+        $referencePrice = (string) $referencePrice;
+        if (null !== $visitorId) {
+            $visitorId = (string) $visitorId;
+        }
         $parameterList = array(
             'site-id' => $this->_siteId,
             'hash' => $this->_hash,
-            'visitor-ip' => $this->_visitorIp,
-            'reference-price' => (string) $referencePrice,
+            'reference-price' => $referencePrice,
         );
+        if (null !== $this->_visitorIp) {
+            $parameterList['visitor-ip'] = $this->_visitorIp;
+        }
         if (null !== $visitorId) {
             $parameterList['visitor-id'] = (string) $visitorId;
         }
-        $url = $this->_serverUrl . '/get-dynamic-price.php?' . http_build_query($parameterList);
-        $result = $this->_httpGet($url);
+        $url = $this->_serverUrl . '/get-dynamic-price';
+        $result = $this->_getTransport()->get($url, $parameterList);
         if (null === $result) {
             return null;
         }
@@ -228,48 +247,13 @@ class DarwinPricing_Client {
     }
 
     /**
-     * @param string $url
-     *
-     * @return string|null
+     * @return DarwinPricing_Client_Transport_Interface
      */
-    protected function _httpGet($url) {
-        $url = (string) $url;
-        $cacheKey = __CLASS__ . '::' . __METHOD__ . '(' . $url . ')';
-        $cache = $this->_getCache();
-        $result = $cache->get($cacheKey);
-        if (false === $result) {
-            $ch = curl_init($url);
-            curl_setopt_array($ch, array(
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT_MS => 3000,
-            ));
-            $result = $this->_curlExec($ch);
-            curl_close($ch);
-            if (!is_string($result)) {
-                return null;
-            }
-            $cache->set($cacheKey, $result);
+    protected function _getTransport() {
+        if (!isset($this->_transport)) {
+            $this->setTransportImplementation(new DarwinPricing_Client_Transport_Curl());
         }
-        return $result;
-    }
-
-    /**
-     * @param string $url
-     * @param array  $parameterList
-     *
-     * @return bool
-     */
-    protected function _httpPost($url, $parameterList) {
-        $url = (string) $url;
-        $ch = curl_init($url);
-        curl_setopt_array($ch, array(
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => http_build_query($parameterList),
-            CURLOPT_TIMEOUT_MS => 3000,
-        ));
-        $result = $this->_curlExec($ch);
-        curl_close($ch);
-        return $result;
+        return $this->_transport;
     }
 
 }

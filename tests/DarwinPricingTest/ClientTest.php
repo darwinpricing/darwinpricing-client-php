@@ -228,7 +228,7 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
             array('value' => 100, 'currency' => 'EUR'),
             array('value' => 10),
         );
-        $referencePriceExpected = urlencode('USD123.45,-USD123.45,EUR100,10');
+        $referencePriceExpected = 'USD123.45,-USD123.45,EUR100,10';
         $dynamicPriceListMock = array(
             array('value' => 99.95, 'currency' => 'EUR'),
             array('value' => -99.95, 'currency' => 'EUR'),
@@ -243,7 +243,7 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
             'p3' => array('value' => 100, 'currency' => 'EUR'),
             'p4' => array('value' => 10),
         );
-        $referencePriceExpected = urlencode('USD123.45,-USD123.45,EUR100,10');
+        $referencePriceExpected = 'USD123.45,-USD123.45,EUR100,10';
         $dynamicPriceListMock = array(
             array('value' => 99.95, 'currency' => 'EUR'),
             array('value' => -99.95, 'currency' => 'EUR'),
@@ -258,7 +258,7 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
             1 => array('value' => 100, 'currency' => 'EUR'),
             3 => array('value' => 10),
         );
-        $referencePriceExpected = urlencode('USD123.45,-USD123.45,EUR100,10');
+        $referencePriceExpected = 'USD123.45,-USD123.45,EUR100,10';
         $dynamicPriceListMock = array(
             array('value' => 99.95, 'currency' => 'EUR'),
             array('value' => -99.95, 'currency' => 'EUR'),
@@ -273,7 +273,7 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
             array('value' => 100, 'currency' => 'EUR'),
             array('value' => 10),
         );
-        $referencePriceExpected = urlencode('USD123.45,-USD123.45,EUR100,10');
+        $referencePriceExpected = 'USD123.45,-USD123.45,EUR100,10';
         $dynamicPriceListMock = null;
         $this->_testGetDynamicPriceList($referencePriceList, $referencePriceExpected, $dynamicPriceListMock, 99);
 
@@ -283,7 +283,7 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
             'p3' => array('value' => 100, 'currency' => 'EUR'),
             'p4' => array('value' => 10),
         );
-        $referencePriceExpected = urlencode('USD123.45,-USD123.45,EUR100,10');
+        $referencePriceExpected = 'USD123.45,-USD123.45,EUR100,10';
         $dynamicPriceListMock = null;
         $this->_testGetDynamicPriceList($referencePriceList, $referencePriceExpected, $dynamicPriceListMock, 99);
     }
@@ -323,71 +323,93 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testGetDynamicPriceList_InvalidResponse() {
-        $referencePriceList = array(new DarwinPricing_Client_Price(123.45, 'USD'));
-        $referencePriceExpected = 'USD123.45';
-        $clientConfig = array('http://api.darwinpricing.com', 123456, 'abc');
-        $client = $this->getMockBuilder('DarwinPricing_Client')->setMethods(array('_httpGet'))->setConstructorArgs($clientConfig)->getMock();
-        $client->expects($this->any())->method('_httpGet')->will($this->returnValue(''));
-        $urlExpected = 'http://api.darwinpricing.com/get-dynamic-price.php?site-id=123456&hash=abc&visitor-ip=127.0.0.1&reference-price=' . $referencePriceExpected . '&visitor-id=99';
-        $client->expects($this->once())->method('_httpGet')->with($urlExpected);
+        $client = new DarwinPricing_Client('http://api.darwinpricing.com', 123456, 'abc');
+        $transportMock = $this->_getTransportMock();
+        $client->setTransportImplementation($transportMock);
+        $parameterListExpected = array(
+            'site-id' => 123456,
+            'hash' => 'abc',
+            'reference-price' => 'USD123.45',
+            'visitor-ip' => $_SERVER['REMOTE_ADDR'],
+            'visitor-id' => '99',
+        );
+        $optionListExpected = array(
+            CURLOPT_URL => 'http://api.darwinpricing.com/get-dynamic-price?' . http_build_query($parameterListExpected),
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT_MS => 3000,
+        );
+        $transportMock->expects($this->once())->method('_curlExec')->with($optionListExpected)->will($this->returnValue(''));
 
+        $referencePriceList = array(new DarwinPricing_Client_Price(123.45, 'USD'));
         $dynamicPriceListActual = $client->getDynamicPriceList($referencePriceList, 99);
         $this->assertSame($referencePriceList, $dynamicPriceListActual);
     }
 
-    public function testHttpGet() {
-        $this->_testHttpGet('test', 'http://api.darwinpricing.com', 'test');
-        $this->_testHttpGet('test', 'http://api.darwinpricing.com', 'testCache');
-        $this->_testHttpGet('test', 'http://api.darwinpricing.com', false);
-
-        $this->_testHttpGet(null, 'http://api.darwinpricing.com/?a=2', false);
-        $this->_testHttpGet('testNoCache', 'http://api.darwinpricing.com/?a=2', 'testNoCache');
-    }
-
-    public function testHttpPost() {
-        $this->_testHttpPost('http://api.darwinpricing.com', 'test');
-        $this->_testHttpPost('http://api.darwinpricing.com', false);
-    }
-
     protected function _testAddPayment($profit, $visitorId, $visitorIp = null) {
-        foreach (array(true, false) as $return) {
-            $serverUrl = 'http://api.darwinpricing.com';
-            $clientConfig = array($serverUrl, 123456, 'abc', $visitorIp);
-            $client = $this->getMockBuilder('DarwinPricing_Client')->setMethods(array('_httpPost'))->setConstructorArgs($clientConfig)->getMock();
-            $client->expects($this->any())->method('_httpPost')->will($this->returnValue($return));
-            $urlExpected = $serverUrl . '/add-payment.php';
+        foreach (array(
+    array('expected' => true, 'curlReturn' => ''),
+    array('expected' => false, 'curlReturn' => false),
+        ) as $testData) {
+            $expected = $testData['expected'];
+            $curlReturn = $testData['curlReturn'];
+            $client = new DarwinPricing_Client('http://api.darwinpricing.com', 123456, 'abc', $visitorIp);
+            $transportMock = $this->_getTransportMock();
+            $client->setTransportImplementation($transportMock);
             $parameterListExpected = array(
                 'site-id' => 123456,
                 'hash' => 'abc',
+                'profit' => (string) $profit,
             );
-            if (isset($_SERVER['REMOTE_ADDR'])) {
-                $parameterListExpected['visitor-ip'] = $_SERVER['REMOTE_ADDR'];
-            } else {
+            if (null !== $visitorIp) {
                 $parameterListExpected['visitor-ip'] = $visitorIp;
+            } elseif (isset($_SERVER['REMOTE_ADDR'])) {
+                $parameterListExpected['visitor-ip'] = $_SERVER['REMOTE_ADDR'];
             }
-            $parameterListExpected['profit'] = (string) $profit;
-            $parameterListExpected['visitor-id'] = $visitorId;
-            $client->expects($this->once())->method('_httpPost')->with($urlExpected, $parameterListExpected);
+            if (null !== $visitorId) {
+                $parameterListExpected['visitor-id'] = $visitorId;
+            }
+            $optionListExpected = array(
+                CURLOPT_POST => true,
+                CURLOPT_URL => 'http://api.darwinpricing.com/add-payment',
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT_MS => 3000,
+                CURLOPT_POSTFIELDS => http_build_query($parameterListExpected),
+            );
+            $transportMock->expects($this->once())->method('_curlExec')->with($optionListExpected)->will($this->returnValue($curlReturn));
 
-            $this->assertSame($return, $client->addPayment($profit, $visitorId));
+            $this->assertSame($expected, $client->addPayment($profit, $visitorId));
         }
     }
 
     protected function _testGetDiscountCode($discountCodeMock, $visitorId, $visitorIp = null) {
-        $serverUrl = 'http://api.darwinpricing.com';
-        $clientConfig = array($serverUrl, 123456, 'abc', $visitorIp);
-        $client = $this->getMockBuilder('DarwinPricing_Client')->setMethods(array('_httpGet'))->setConstructorArgs($clientConfig)->getMock();
-        $client->expects($this->any())->method('_httpGet')->will($this->returnValue(null !== $discountCodeMock ? json_encode($discountCodeMock) : null));
-        $urlExpected = $serverUrl . '/get-discount-code.php?site-id=123456&hash=abc';
+        $client = new DarwinPricing_Client('http://api.darwinpricing.com', 123456, 'abc', $visitorIp);
+        $transportMock = $this->_getTransportMock();
+        $client->setTransportImplementation($transportMock);
+        $parameterListExpected = array(
+            'site-id' => 123456,
+            'hash' => 'abc',
+        );
         if (null !== $visitorIp) {
-            $urlExpected .= '&visitor-ip=' . $visitorIp;
+            $parameterListExpected['visitor-ip'] = $visitorIp;
         } elseif (isset($_SERVER['REMOTE_ADDR'])) {
-            $urlExpected .= '&visitor-ip=' . $_SERVER['REMOTE_ADDR'];
+            $parameterListExpected['visitor-ip'] = $_SERVER['REMOTE_ADDR'];
         }
         if (null !== $visitorId) {
-            $urlExpected .= '&visitor-id=' . $visitorId;
+            $parameterListExpected['visitor-id'] = $visitorId;
         }
-        $client->expects($this->once())->method('_httpGet')->with($urlExpected);
+        $optionListExpected = array(
+            CURLOPT_URL => 'http://api.darwinpricing.com/get-discount-code?' . http_build_query($parameterListExpected),
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT_MS => 3000,
+        );
+        $curlReturn = null !== $discountCodeMock ? json_encode($discountCodeMock) : null;
+        $transportMock->expects($this->once())->method('_curlExec')->with($optionListExpected)->will($this->returnValue($curlReturn));
 
         $discountCodeActual = $client->getDiscountCode($visitorId);
         $this->assertTrue(is_string($discountCodeActual));
@@ -396,21 +418,32 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
     }
 
     protected function _testGetDynamicPrice($serverUrl, $serverUrlExpected, $dynamicPriceMock, $referencePrice, $referencePriceExpected, $visitorId, $visitorIp = null) {
-        $clientConfig = array($serverUrl, 123456, 'abc', $visitorIp);
+        $client = new DarwinPricing_Client($serverUrl, 123456, 'abc', $visitorIp);
+        $transportMock = $this->_getTransportMock();
+        $client->setTransportImplementation($transportMock);
         $serverUrlExpected = isset($serverUrlExpected) ? $serverUrlExpected : $serverUrl;
-        $client = $this->getMockBuilder('DarwinPricing_Client')->setMethods(array('_httpGet'))->setConstructorArgs($clientConfig)->getMock();
-        $client->expects($this->any())->method('_httpGet')->will($this->returnValue(null !== $dynamicPriceMock ? json_encode($dynamicPriceMock) : null));
-        $urlExpected = $serverUrlExpected . '/get-dynamic-price.php?site-id=123456&hash=abc';
+        $parameterListExpected = array(
+            'site-id' => 123456,
+            'hash' => 'abc',
+            'reference-price' => $referencePriceExpected,
+        );
         if (null !== $visitorIp) {
-            $urlExpected .= '&visitor-ip=' . $visitorIp;
+            $parameterListExpected['visitor-ip'] = $visitorIp;
         } elseif (isset($_SERVER['REMOTE_ADDR'])) {
-            $urlExpected .= '&visitor-ip=' . $_SERVER['REMOTE_ADDR'];
+            $parameterListExpected['visitor-ip'] = $_SERVER['REMOTE_ADDR'];
         }
-        $urlExpected .= '&reference-price=' . $referencePriceExpected;
         if (null !== $visitorId) {
-            $urlExpected .= '&visitor-id=' . $visitorId;
+            $parameterListExpected['visitor-id'] = $visitorId;
         }
-        $client->expects($this->once())->method('_httpGet')->with($urlExpected);
+        $optionListExpected = array(
+            CURLOPT_URL => $serverUrlExpected . '/get-dynamic-price?' . http_build_query($parameterListExpected),
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT_MS => 3000,
+        );
+        $curlReturn = null !== $dynamicPriceMock ? json_encode($dynamicPriceMock) : null;
+        $transportMock->expects($this->once())->method('_curlExec')->with($optionListExpected)->will($this->returnValue($curlReturn));
 
         $dynamicPriceActual = $client->getDynamicPrice(DarwinPricing_Client_Price::fromArray($referencePrice), $visitorId);
         $this->assertInstanceOf('DarwinPricing_Client_Price', $dynamicPriceActual);
@@ -420,20 +453,31 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
     }
 
     protected function _testGetDynamicPriceList($referencePriceList, $referencePriceExpected, $dynamicPriceListMock, $visitorId, $visitorIp = null) {
-        $clientConfig = array('http://api.darwinpricing.com', 123456, 'abc', $visitorIp);
-        $client = $this->getMockBuilder('DarwinPricing_Client')->setMethods(array('_httpGet'))->setConstructorArgs($clientConfig)->getMock();
-        $client->expects($this->any())->method('_httpGet')->will($this->returnValue(null !== $dynamicPriceListMock ? json_encode($dynamicPriceListMock) : null));
-        $urlExpected = 'http://api.darwinpricing.com/get-dynamic-price.php?site-id=123456&hash=abc';
+        $client = new DarwinPricing_Client('http://api.darwinpricing.com', 123456, 'abc', $visitorIp);
+        $transportMock = $this->_getTransportMock();
+        $client->setTransportImplementation($transportMock);
+        $parameterListExpected = array(
+            'site-id' => 123456,
+            'hash' => 'abc',
+            'reference-price' => $referencePriceExpected,
+        );
         if (null !== $visitorIp) {
-            $urlExpected .= '&visitor-ip=' . $visitorIp;
+            $parameterListExpected['visitor-ip'] = $visitorIp;
         } elseif (isset($_SERVER['REMOTE_ADDR'])) {
-            $urlExpected .= '&visitor-ip=' . $_SERVER['REMOTE_ADDR'];
+            $parameterListExpected['visitor-ip'] = $_SERVER['REMOTE_ADDR'];
         }
-        $urlExpected .= '&reference-price=' . $referencePriceExpected;
         if (null !== $visitorId) {
-            $urlExpected .= '&visitor-id=' . $visitorId;
+            $parameterListExpected['visitor-id'] = (string) $visitorId;
         }
-        $client->expects($this->once())->method('_httpGet')->with($urlExpected);
+        $optionListExpected = array(
+            CURLOPT_URL => 'http://api.darwinpricing.com/get-dynamic-price?' . http_build_query($parameterListExpected),
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT_MS => 3000,
+        );
+        $curlReturn = null !== $dynamicPriceListMock ? json_encode($dynamicPriceListMock) : null;
+        $transportMock->expects($this->once())->method('_curlExec')->with($optionListExpected)->will($this->returnValue($curlReturn));
 
         $dynamicPriceListActual = $client->getDynamicPriceList(array_map(array(
             'DarwinPricing_Client_Price',
@@ -459,24 +503,12 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
         }
     }
 
-    protected function _testHttpGet($expected, $url, $curlResultMock) {
-        $clientConfig = array('http://api.darwinpricing.com', 123456, 'abc');
-        $client = $this->getMockBuilder('DarwinPricing_Client')->setMethods(array('_curlExec'))->setConstructorArgs($clientConfig)->getMock();
-        $client->expects($this->any())->method('_curlExec')->will($this->returnValue($curlResultMock));
-        $class = new ReflectionClass($client);
-        $_httpGet = $class->getMethod('_httpGet');
-        $_httpGet->setAccessible(true);
-        $this->assertSame($expected, $_httpGet->invokeArgs($client, array($url)));
-    }
-
-    protected function _testHttpPost($url, $curlResultMock) {
-        $clientConfig = array('http://api.darwinpricing.com', 123456, 'abc');
-        $client = $this->getMockBuilder('DarwinPricing_Client')->setMethods(array('_curlExec'))->setConstructorArgs($clientConfig)->getMock();
-        $client->expects($this->any())->method('_curlExec')->will($this->returnValue($curlResultMock));
-        $class = new ReflectionClass($client);
-        $_httpPost = $class->getMethod('_httpPost');
-        $_httpPost->setAccessible(true);
-        $this->assertSame($curlResultMock, $_httpPost->invokeArgs($client, array($url, array())));
+    /**
+     * @param mixed $resultMock
+     * @return DarwinPricingTest_Client_Transport_CurlMock
+     */
+    protected function _getTransportMock() {
+        return $this->getMockBuilder('DarwinPricing_Client_Transport_Curl')->setMethods(array('_curlExec'))->getMock();
     }
 
 }
