@@ -22,12 +22,12 @@
     },
     "autoload": {
         "psr-0": {
-            "FC_": "src/"
+            "DarwinPricing_": "src/"
         }
     },
     "autoload-dev": {
         "psr-0": {
-            "FCTest_": "tests/"
+            "DarwinPricingTest_": "tests/"
         }
     }
 }

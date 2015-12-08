@@ -1,6 +1,6 @@
 <?php
 
-class FC_Smart_Client_Price {
+class DarwinPricing_Client_Price {
 
 	/** @var string|null */
 	protected $_currency = null;
@@ -52,13 +52,13 @@ class FC_Smart_Client_Price {
 	/**
 	 * @param array $price string|null currency, float value
 	 *
-	 * @throws FC_Smart_Client_Exception_InvalidParameter
-	 * @return FC_Smart_Client_Price
+	 * @throws DarwinPricing_Client_Exception_InvalidParameter
+	 * @return DarwinPricing_Client_Price
 	 */
 	public static function fromArray($price) {
 		if(!is_array($price) || !isset($price['value'])) {
-			throw new FC_Smart_Client_Exception_InvalidParameter('Invalid price data array `' . serialize($price) . '`');
+			throw new DarwinPricing_Client_Exception_InvalidParameter('Invalid price data array `' . serialize($price) . '`');
 		}
-		return new FC_Smart_Client_Price($price['value'], isset($price['currency']) ? $price['currency'] : null);
+		return new DarwinPricing_Client_Price($price['value'], isset($price['currency']) ? $price['currency'] : null);
 	}
 }

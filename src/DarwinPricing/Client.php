@@ -1,6 +1,6 @@
 <?php
 
-class FC_Smart_Client {
+class DarwinPricing_Client {
 
 	/** @var string */
 	protected $_hash;
@@ -15,21 +15,21 @@ class FC_Smart_Client {
 	protected $_visitorIp;
 
 	/**
-	 * @param string      $serverUrl The URL of your Smart Prices Localizer server
+	 * @param string      $serverUrl The URL of your Darwin Pricing api server
 	 * @param int         $siteId    The ID of your site
 	 * @param string      $hash      The secret hash code for your site
 	 * @param string|null $visitorIp The stored IP address of the visitor, for background jobs
 	 *
-	 * @throws FC_Smart_Client_Exception_InvalidParameter
+	 * @throws DarwinPricing_Client_Exception_InvalidParameter
 	 */
 	public function __construct($serverUrl, $siteId, $hash, $visitorIp = null) {
 		$serverUrlFiltered = filter_var((string) $serverUrl, FILTER_VALIDATE_URL);
 		if(false === $serverUrlFiltered) {
-			throw new FC_Smart_Client_Exception_InvalidParameter("Invalid server URL `$serverUrl`");
+			throw new DarwinPricing_Client_Exception_InvalidParameter("Invalid server URL `$serverUrl`");
 		}
 		$serverUrlParsed = parse_url($serverUrlFiltered);
 		if(isset($serverUrlParsed['query']) || isset($serverUrlParsed['fragment']) || (false !== strpos($serverUrlFiltered, '?')) || (false !== strpos($serverUrlFiltered, '#'))) {
-			throw new FC_Smart_Client_Exception_InvalidParameter("Invalid server URL `$serverUrl`");
+			throw new DarwinPricing_Client_Exception_InvalidParameter("Invalid server URL `$serverUrl`");
 		}
 		if(substr($serverUrlFiltered, -1) === '/') {
 			$serverUrlFiltered = substr($serverUrlFiltered, 0, -1);
@@ -45,15 +45,15 @@ class FC_Smart_Client {
 	}
 
 	/**
-	 * @param FC_Smart_Client_Price $profit    Your margin for this purchase (negative for chargebacks)
+	 * @param DarwinPricing_Client_Price $profit    Your margin for this purchase (negative for chargebacks)
 	 * @param string|null           $visitorId The ID of the customer on your system, if any
 	 *
-	 * @throws FC_Smart_Client_Exception_MissingParameter
+	 * @throws DarwinPricing_Client_Exception_MissingParameter
 	 * @return bool true on success, false on failure
 	 */
-	public function addPayment(FC_Smart_Client_Price $profit, $visitorId = null) {
+	public function addPayment(DarwinPricing_Client_Price $profit, $visitorId = null) {
 		if((null === $visitorId) && (null === $this->_visitorIp)) {
-			throw new FC_Smart_Client_Exception_MissingParameter('Missing argument `$visitorId`');
+			throw new DarwinPricing_Client_Exception_MissingParameter('Missing argument `$visitorId`');
 		}
 		return $this->_addPayment((string) $profit, $visitorId);
 	}
@@ -61,12 +61,12 @@ class FC_Smart_Client {
 	/**
 	 * @param string|null $visitorId The ID of the visitor or customer on your system, if any
 	 *
-	 * @throws FC_Smart_Client_Exception_MissingParameter
+	 * @throws DarwinPricing_Client_Exception_MissingParameter
 	 * @return string
 	 */
 	public function getDiscountCode($visitorId = null) {
 		if((null === $visitorId) && (null === $this->_visitorIp)) {
-			throw new FC_Smart_Client_Exception_MissingParameter('Missing argument `$visitorId`');
+			throw new DarwinPricing_Client_Exception_MissingParameter('Missing argument `$visitorId`');
 		}
 		$discountCode = $this->_getDiscountCode($visitorId);
 		if((null !== $discountCode) && isset($discountCode['discount-code'])) {
@@ -76,37 +76,37 @@ class FC_Smart_Client {
 	}
 
 	/**
-	 * @param FC_Smart_Client_Price $referencePrice The original price
+	 * @param DarwinPricing_Client_Price $referencePrice The original price
 	 * @param string|null           $visitorId      The ID of the visitor or customer on your system, if any
 	 *
-	 * @throws FC_Smart_Client_Exception_MissingParameter
-	 * @return FC_Smart_Client_Price
+	 * @throws DarwinPricing_Client_Exception_MissingParameter
+	 * @return DarwinPricing_Client_Price
 	 */
-	public function getDynamicPrice(FC_Smart_Client_Price $referencePrice, $visitorId = null) {
+	public function getDynamicPrice(DarwinPricing_Client_Price $referencePrice, $visitorId = null) {
 		if((null === $visitorId) && (null === $this->_visitorIp)) {
-			throw new FC_Smart_Client_Exception_MissingParameter('Missing argument `$visitorId`');
+			throw new DarwinPricing_Client_Exception_MissingParameter('Missing argument `$visitorId`');
 		}
 		$dynamicPrice = $this->_getDynamicPrice((string) $referencePrice, $visitorId);
 		if(null !== $dynamicPrice) {
-			return FC_Smart_Client_Price::fromArray($dynamicPrice);
+			return DarwinPricing_Client_Price::fromArray($dynamicPrice);
 		}
 		return $referencePrice;
 	}
 
 	/**
-	 * @param FC_Smart_Client_Price[] $referencePriceList The original prices
+	 * @param DarwinPricing_Client_Price[] $referencePriceList The original prices
 	 * @param string|null             $visitorId          The ID of the visitor or customer on your system, if any
 	 *
-	 * @throws FC_Smart_Client_Exception_InvalidParameter
-	 * @throws FC_Smart_Client_Exception_MissingParameter
-	 * @return FC_Smart_Client_Price[]
+	 * @throws DarwinPricing_Client_Exception_InvalidParameter
+	 * @throws DarwinPricing_Client_Exception_MissingParameter
+	 * @return DarwinPricing_Client_Price[]
 	 */
 	public function getDynamicPriceList($referencePriceList, $visitorId = null) {
 		if(!is_array($referencePriceList)) {
-			throw new FC_Smart_Client_Exception_InvalidParameter('Invalid reference price list `' . serialize($referencePriceList) . '`');
+			throw new DarwinPricing_Client_Exception_InvalidParameter('Invalid reference price list `' . serialize($referencePriceList) . '`');
 		}
 		if((null === $visitorId) && (null === $this->_visitorIp)) {
-			throw new FC_Smart_Client_Exception_MissingParameter('Missing argument `$visitorId`');
+			throw new DarwinPricing_Client_Exception_MissingParameter('Missing argument `$visitorId`');
 		}
 		$referencePrices = implode(',', $referencePriceList);
 		$dynamicPrices = $this->_getDynamicPrice($referencePrices, $visitorId);
@@ -114,7 +114,7 @@ class FC_Smart_Client {
 			$i = 0;
 			foreach($referencePriceList as $key => $referencePrice) {
 				if(isset($dynamicPrices[$i])) {
-					$referencePriceList[$key] = FC_Smart_Client_Price::fromArray($dynamicPrices[$i]);
+					$referencePriceList[$key] = DarwinPricing_Client_Price::fromArray($dynamicPrices[$i]);
 				}
 				$i++;
 			}
@@ -215,7 +215,7 @@ class FC_Smart_Client {
 	protected function _httpGet($url) {
 		$url = (string) $url;
 		$cacheKey = __CLASS__ . '::' . __METHOD__ . '(' . $url . ')';
-		$result = FC_Smart_Client_Cache::get($cacheKey);
+		$result = DarwinPricing_Client_Cache::get($cacheKey);
 		if(false === $result) {
 			$ch = curl_init($url);
 			curl_setopt_array($ch, array(
@@ -227,7 +227,7 @@ class FC_Smart_Client {
 			if(!is_string($result)) {
 				return null;
 			}
-			FC_Smart_Client_Cache::set($cacheKey, $result);
+			DarwinPricing_Client_Cache::set($cacheKey, $result);
 		}
 		return $result;
 	}

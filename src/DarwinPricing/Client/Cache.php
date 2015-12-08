@@ -1,6 +1,6 @@
 <?php
 
-class FC_Smart_Client_Cache {
+class DarwinPricing_Client_Cache {
 
 	const APC_TTL = 3600;
 
