@@ -122,28 +122,8 @@ class DarwinPricing_Client {
         $url = $this->_getUrl('/add-payment');
         $parameterList = $this->_getParameterList();
         $parameterList['profit'] = $profit;
-        $result = $this->_post($url, $parameterList);
+        $result = $this->_httpPost($url, $parameterList);
         return isset($result);
-    }
-
-    /**
-     * @param string     $url
-     * @param array|null $parameterList
-     * @param array|null $headerList
-     * @return string|null
-     */
-    protected function _get($url, array $parameterList = null, array $headerList = null) {
-        $url = (string) $url;
-        $parameterList = (array) $parameterList;
-        $headerList = (array) $headerList;
-        $cacheKey = __METHOD__ . '(' . serialize($url) . ',' . serialize($parameterList) . ',' . serialize($headerList) . ')';
-        $cache = $this->_getCache();
-        $result = $cache->get($cacheKey);
-        if (false === $result) {
-            $result = $this->_getTransport()->get($url, $parameterList, $headerList);
-            $cache->set($cacheKey, $result);
-        }
-        return $result;
     }
 
     /**
@@ -162,7 +142,7 @@ class DarwinPricing_Client {
     protected function _getDiscountCode() {
         $url = $this->_getUrl('/get-discount-code');
         $parameterList = $this->_getParameterList();
-        return $this->_getJson($url, $parameterList);
+        return $this->_httpGetJson($url, $parameterList);
     }
 
     /**
@@ -174,25 +154,7 @@ class DarwinPricing_Client {
         $url = $this->_getUrl('/get-dynamic-price');
         $parameterList = $this->_getParameterList();
         $parameterList['reference-price'] = $referencePrice;
-        return $this->_getJson($url, $parameterList);
-    }
-
-    /**
-     * @param string     $url
-     * @param array|null $parameterList
-     * @param array|null $headerList
-     * @return array|null
-     */
-    protected function _getJson($url, array $parameterList = null, array $headerList = null) {
-        $result = $this->_get($url, $parameterList, $headerList);
-        if (null === $result) {
-            return null;
-        }
-        $result = json_decode($result, true);
-        if (!is_array($result)) {
-            return null;
-        }
-        return $result;
+        return $this->_httpGetJson($url, $parameterList);
     }
 
     /**
@@ -250,7 +212,45 @@ class DarwinPricing_Client {
      * @param array|null $headerList
      * @return string|null
      */
-    protected function _post($url, array $parameterList = null, array $headerList = null) {
+    protected function _httpGet($url, array $parameterList = null, array $headerList = null) {
+        $url = (string) $url;
+        $parameterList = (array) $parameterList;
+        $headerList = (array) $headerList;
+        $cacheKey = __METHOD__ . '(' . serialize($url) . ',' . serialize($parameterList) . ',' . serialize($headerList) . ')';
+        $cache = $this->_getCache();
+        $result = $cache->get($cacheKey);
+        if (false === $result) {
+            $result = $this->_getTransport()->get($url, $parameterList, $headerList);
+            $cache->set($cacheKey, $result);
+        }
+        return $result;
+    }
+
+    /**
+     * @param string     $url
+     * @param array|null $parameterList
+     * @param array|null $headerList
+     * @return array|null
+     */
+    protected function _httpGetJson($url, array $parameterList = null, array $headerList = null) {
+        $result = $this->_httpGet($url, $parameterList, $headerList);
+        if (null === $result) {
+            return null;
+        }
+        $result = json_decode($result, true);
+        if (!is_array($result)) {
+            return null;
+        }
+        return $result;
+    }
+
+    /**
+     * @param string     $url
+     * @param array|null $parameterList
+     * @param array|null $headerList
+     * @return string|null
+     */
+    protected function _httpPost($url, array $parameterList = null, array $headerList = null) {
         $url = (string) $url;
         $parameterList = (array) $parameterList;
         $headerList = (array) $headerList;
