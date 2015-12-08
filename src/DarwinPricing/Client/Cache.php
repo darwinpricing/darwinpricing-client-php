@@ -2,141 +2,101 @@
 
 class DarwinPricing_Client_Cache {
 
-    const APC_TTL = 3600;
+    protected $_ttl = 3600;
 
-    /** @var bool */
-    protected static $_apcEnabled = null;
-
-    /** @var array */
-    protected static $_runtimeCache = array();
+    /** @var DarwinPricing_Client_CacheStorage_Abstract|false|null */
+    protected static $_cacheStorageApcu, $_cacheStorageRuntime;
 
     /**
      * @param string $key
-     *
+     */
+    public function delete($key) {
+        $key = (string) $key;
+        self::_getCacheStorageRuntime()->delete($key);
+        if ($cacheStorageApcu = self::_getCacheStorageApcu()) {
+            $cacheStorageApcu->delete($key);
+        }
+    }
+
+    public function flush() {
+        self::_getCacheStorageRuntime()->flush();
+        if ($cacheStorageApcu = self::_getCacheStorageApcu()) {
+            $cacheStorageApcu->flush();
+        }
+    }
+
+    /**
+     * @param string $key
      * @return mixed
      */
-    public static function get($key) {
+    public function get($key) {
         $key = (string) $key;
-        $value = self::_getRuntime($key);
+        $value = self::_getCacheStorageRuntime()->get($key);
         if (false !== $value) {
             return $value;
         }
-        $value = self::_getApc($key);
-        if (false !== $value) {
-            self::_setRuntime($key, $value);
+        if ($cacheStorageApcu = self::_getCacheStorageApcu()) {
+            $value = $cacheStorageApcu->get($key);
+            if (false !== $value) {
+                self::_getCacheStorageRuntime()->set($key, $value);
+            }
         }
         return $value;
     }
 
     /**
-     * @param string $key
-     * @param mixed  $value
+     * @return int
      */
-    public static function set($key, $value) {
+    public function getTtl() {
+        return $this->_ttl;
+    }
+
+    /**
+     * @param string   $key
+     * @param mixed    $value
+     * @param int|null $ttl
+     */
+    public function set($key, $value) {
         $key = (string) $key;
-        self::_setRuntime($key, $value);
-        self::_setApc($key, $value);
-    }
-
-    /**
-     * @param string $key
-     */
-    public static function delete($key) {
-        self::_deleteRuntime($key);
-        self::_deleteApc($key);
-    }
-
-    public static function flush() {
-        self::_flushRuntime();
-        self::_flushApc();
-    }
-
-    /**
-     * @param string $key
-     */
-    protected static function _deleteRuntime($key) {
-        unset(self::$_runtimeCache[$key]);
-    }
-
-    protected static function _flushRuntime() {
-        self::$_runtimeCache = array();
-    }
-
-    /**
-     * @param string $key
-     *
-     * @return mixed
-     */
-    protected static function _getRuntime($key) {
-        if (!array_key_exists($key, self::$_runtimeCache)) {
-            return false;
+        self::_getCacheStorageRuntime()->set($key, $value);
+        if ($cacheStorageApcu = self::_getCacheStorageApcu()) {
+            $cacheStorageApcu->setTtl($this->getTtl());
+            $cacheStorageApcu->set($key, $value);
         }
-        return self::$_runtimeCache[$key];
     }
 
     /**
-     * @param string $key
-     * @param mixed  $value
+     * @param int $ttl
      */
-    protected static function _setRuntime($key, $value) {
-        self::$_runtimeCache[$key] = $value;
+    public function setTtl($ttl) {
+        $ttl = (int) $ttl;
+        $this->_ttl = $ttl;
     }
 
     /**
-     * @return bool
+     * @return DarwinPricing_Client_CacheStorage_Runtime
      */
-    protected static function _isApcEnabled() {
-        if (null === self::$_apcEnabled) {
-            self::$_apcEnabled = extension_loaded('apc');
+    protected static function _getCacheStorageRuntime() {
+        if (!isset(self::$_cacheStorageRuntime)) {
+            self::$_cacheStorageRuntime = new DarwinPricing_Client_CacheStorage_Runtime();
         }
-        return self::$_apcEnabled;
+        return self::$_cacheStorageRuntime;
     }
 
     /**
-     * @param string $key
-     *
-     * @return bool
+     * @return DarwinPricing_Client_CacheStorage_Apcu|DarwinPricing_Client_CacheStorage_Apc|false
      */
-    protected static function _deleteApc($key) {
-        if (!self::_isApcEnabled()) {
-            return false;
+    protected static function _getCacheStorageApcu() {
+        if (!isset(self::$_cacheStorageApcu)) {
+            if (function_exists('apcu_fetch')) {
+                self::$_cacheStorageApcu = new DarwinPricing_Client_CacheStorage_Apcu();
+            } elseif (function_exists('apc_fetch')) {
+                self::$_cacheStorageApcu = new DarwinPricing_Client_CacheStorage_Apc();
+            } else {
+                self::$_cacheStorageApcu = false;
+            }
         }
-        return apc_delete($key);
-    }
-
-    /**
-     * @return bool
-     */
-    protected static function _flushApc() {
-        if (!self::_isApcEnabled()) {
-            return false;
-        }
-        return apc_clear_cache('user');
-    }
-
-    /**
-     * @param string $key
-     *
-     * @return mixed
-     */
-    protected static function _getApc($key) {
-        if (!self::_isApcEnabled()) {
-            return false;
-        }
-        return apc_fetch($key);
-    }
-
-    /**
-     * @param string $key
-     * @param mixed  $value
-     *
-     * @return bool
-     */
-    protected static function _setApc($key, $value) {
-        if (!self::_isApcEnabled()) {
-            return false;
-        }
-        return apc_store($key, $value, self::APC_TTL);
+        return self::$_cacheStorageApcu;
     }
 
 }

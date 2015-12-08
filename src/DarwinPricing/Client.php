@@ -215,7 +215,8 @@ class DarwinPricing_Client {
     protected function _httpGet($url) {
         $url = (string) $url;
         $cacheKey = __CLASS__ . '::' . __METHOD__ . '(' . $url . ')';
-        $result = DarwinPricing_Client_Cache::get($cacheKey);
+        $cache = new DarwinPricing_Client_Cache();
+        $result = $cache->get($cacheKey);
         if (false === $result) {
             $ch = curl_init($url);
             curl_setopt_array($ch, array(
@@ -227,7 +228,7 @@ class DarwinPricing_Client {
             if (!is_string($result)) {
                 return null;
             }
-            DarwinPricing_Client_Cache::set($cacheKey, $result);
+            $cache->set($cacheKey, $result);
         }
         return $result;
     }
