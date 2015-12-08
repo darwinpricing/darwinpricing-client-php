@@ -162,15 +162,7 @@ class DarwinPricing_Client {
     protected function _getDiscountCode() {
         $url = $this->_getUrl('/get-discount-code');
         $parameterList = $this->_getParameterList();
-        $result = $this->_get($url, $parameterList);
-        if (null === $result) {
-            return null;
-        }
-        $discountCode = json_decode($result, true);
-        if (!is_array($discountCode)) {
-            return null;
-        }
-        return $discountCode;
+        return $this->_getJson($url, $parameterList);
     }
 
     /**
@@ -182,15 +174,25 @@ class DarwinPricing_Client {
         $url = $this->_getUrl('/get-dynamic-price');
         $parameterList = $this->_getParameterList();
         $parameterList['reference-price'] = $referencePrice;
-        $result = $this->_get($url, $parameterList);
+        return $this->_getJson($url, $parameterList);
+    }
+
+    /**
+     * @param string     $url
+     * @param array|null $parameterList
+     * @param array|null $headerList
+     * @return array|null
+     */
+    protected function _getJson($url, array $parameterList = null, array $headerList = null) {
+        $result = $this->_get($url, $parameterList, $headerList);
         if (null === $result) {
             return null;
         }
-        $dynamicPrice = json_decode($result, true);
-        if (!is_array($dynamicPrice)) {
+        $result = json_decode($result, true);
+        if (!is_array($result)) {
             return null;
         }
-        return $dynamicPrice;
+        return $result;
     }
 
     /**
