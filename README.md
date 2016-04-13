@@ -22,7 +22,7 @@ $widgetUrl = $darwinPricing->getWidgetUrl();
 
 Then load this script asynchronously on your website:
 ```html
-<script>(function(d,t,s,f){s=d.createElement(t);s.async=1;s.src={json_encode($widgetUrl)};f=d.getElementsByTagName(t)[0];f.parentNode.insertBefore(s,f)})(document,'script')</script>
+<script>(function(d,t,s,f){s=d.createElement(t);s.src=<?php echo json_encode($widgetUrl); ?>;s.async=1;f=d.getElementsByTagName(t)[0];f.parentNode.insertBefore(s,f)})(document,'script')</script>
 ```
 
 For a back-end integration using geo-targeted coupon codes resp. pricing plans, retrieve the discount percentage and the coupon code resp. the code of the pricing plan with:
