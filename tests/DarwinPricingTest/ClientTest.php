@@ -97,11 +97,11 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
     public function testGetDiscountCode_discountCode() {
         $visitorId = 99;
         foreach (array(
-    array('discount-code' => 'WIN13'),
-    array('discount-code' => 'NOËL'),
-    array('discount-code' => ''),
-    array('discount-code' => '123'),
-    array('discount-code' => 123),
+    array('discount-code' => 'WIN13', 'discount-percent' => 13),
+    array('discount-code' => 'NOËL', 'discount-percent' => 20),
+    array('discount-code' => '', 'discount-percent' => 0),
+    array('discount-code' => '123', 'discount-percent' => -5),
+    array('discount-code' => 123, 'discount-percent' => '-5'),
     'Internal Server Error',
     null,
         ) as $discountCodeMock) {
@@ -113,6 +113,21 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
         $discountCodeMock = array('discount-code' => 'WIN13');
         foreach (array(null, 99, '0123') as $visitorId) {
             $this->_testGetDiscountCode($discountCodeMock, $visitorId);
+        }
+    }
+
+    public function testGetDiscountPercent() {
+        $visitorId = 99;
+        foreach (array(
+    array('discount-code' => 'WIN13', 'discount-percent' => 13),
+    array('discount-code' => 'NOËL', 'discount-percent' => 20),
+    array('discount-code' => '', 'discount-percent' => 0),
+    array('discount-code' => '123', 'discount-percent' => -5),
+    array('discount-code' => '123', 'discount-percent' => '-5'),
+    'Internal Server Error',
+    null,
+        ) as $discountCodeMock) {
+            $this->_testGetDiscountPercent($discountCodeMock, $visitorId);
         }
     }
 
@@ -411,6 +426,38 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
         $this->assertTrue(is_string($discountCodeActual));
         $discountCodeExpected = is_array($discountCodeMock) ? (string) $discountCodeMock['discount-code'] : '';
         $this->assertSame($discountCodeExpected, $discountCodeActual);
+    }
+
+    protected function _testGetDiscountPercent($discountCodeMock, $visitorId, $visitorIp = null) {
+        $client = new DarwinPricing_Client('http://api.darwinpricing.com', 123456, 'abc', new DarwinPricing_Client_Visitor($visitorIp, $visitorId));
+        $transportMock = $this->_getTransportMock();
+        $client->setTransportImplementation($transportMock);
+        $parameterListExpected = array(
+            'site-id' => 123456,
+            'hash' => 'abc',
+        );
+        if (null !== $visitorIp) {
+            $parameterListExpected['visitor-ip'] = $visitorIp;
+        } elseif (isset($_SERVER['REMOTE_ADDR'])) {
+            $parameterListExpected['visitor-ip'] = $_SERVER['REMOTE_ADDR'];
+        }
+        if (null !== $visitorId) {
+            $parameterListExpected['visitor-id'] = $visitorId;
+        }
+        $optionListExpected = array(
+            CURLOPT_URL => 'http://api.darwinpricing.com/get-discount-code?' . http_build_query($parameterListExpected),
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT_MS => 3000,
+        );
+        $curlReturn = null !== $discountCodeMock ? json_encode($discountCodeMock) : null;
+        $transportMock->expects($this->once())->method('_curlExec')->with($optionListExpected)->will($this->returnValue($curlReturn));
+
+        $discountPercentActual = $client->getDiscountPercent();
+        $this->assertTrue(is_int($discountPercentActual));
+        $discountPercentExpected = is_array($discountCodeMock) ? (int) $discountCodeMock['discount-percent'] : 0;
+        $this->assertSame($discountPercentExpected, $discountPercentActual);
     }
 
     protected function _testGetDynamicPrice($serverUrl, $serverUrlExpected, $dynamicPriceMock, $referencePrice, $referencePriceExpected, $visitorId, $visitorIp = null) {

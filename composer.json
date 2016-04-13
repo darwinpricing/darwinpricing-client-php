@@ -1,7 +1,7 @@
 {
     "name": "darwinpricing/darwinpricing-client",
     "description": "PHP Client for the dynamic geo-pricing engine Darwin Pricing",
-    "version": "5.1.0",
+    "version": "5.1.1",
     "homepage": "https://www.darwinpricing.com",
     "license": "LGPL-3.0",
     "authors": [

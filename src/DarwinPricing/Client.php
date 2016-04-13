@@ -54,6 +54,17 @@ class DarwinPricing_Client {
     }
 
     /**
+     * @return int The recommended discount percentage for your website visitor (0 by default, negative if over the original price)
+     */
+    public function getDiscountPercent() {
+        $discountCode = $this->_getDiscountCode();
+        if (isset($discountCode) && isset($discountCode['discount-percent'])) {
+            return (int) $discountCode['discount-percent'];
+        }
+        return 0;
+    }
+
+    /**
      * @param DarwinPricing_Client_Price $referencePrice The original price
      * @return DarwinPricing_Client_Price The recommended price for your website visitor
      */
