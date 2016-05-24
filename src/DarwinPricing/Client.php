@@ -156,6 +156,15 @@ class DarwinPricing_Client {
     }
 
     /**
+     * @param DarwinPricing_Client_Order $order The details of this order
+     * @return bool true on success, false on failure
+     */
+    public function trackOrder(DarwinPricing_Client_Order $order) {
+        $order = (string) $order;
+        return $this->_trackOrder($order);
+    }
+
+    /**
      * @param string $profit
      * @return bool
      */
@@ -301,6 +310,18 @@ class DarwinPricing_Client {
         $body = (string) $body;
         $headerList = (array) $headerList;
         return $this->_getTransport()->post($url, $parameterList, $body, $headerList);
+    }
+
+    /**
+     * @param string $order
+     * @return bool
+     */
+    protected function _trackOrder($order) {
+        $order = (string) $order;
+        $url = $this->_getUrl('/webhook/order');
+        $parameterList = $this->_getParameterList();
+        $result = $this->_httpPost($url, $parameterList, $order);
+        return isset($result);
     }
 
 }

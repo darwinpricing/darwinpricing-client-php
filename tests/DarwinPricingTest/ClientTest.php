@@ -359,7 +359,31 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
         $this->assertSame('https://api2.darwinpricing.com/widget?site-id=123456', $widgetUrl);
     }
 
-    protected function _testAddPayment($profit, $visitorId, $visitorIp = null) {
+    public function testTrackOrder() {
+        $order = new DarwinPricing_Client_Order();
+        $order->addCoupon('HAPPY10');
+        $order->addItem(12.34, 1);
+        $order->addItem(120, 3, 'SKU', 'PID', 'VID', 89.95, 19.5);
+        $order->setCurrency('USD');
+        $order->setCustomerId('CID');
+        $order->setCustomerIp('10.10.10.10');
+        $order->setEmail('test@example.com');
+        $order->setOrderId('OID');
+        $order->setOrderReference('OREF');
+        $order->setShippingAmount(9.99);
+        $order->setShippingVatRate(12.8);
+        $order->setTaxes(38.85);
+        $order->setTotal(383.95);
+        $this->_testTrackOrder($order);
+    }
+
+    /**
+     * 
+     * @param DarwinPricing_Client_Price $profit
+     * @param string|int|null $visitorId
+     * @param string|null $visitorIp
+     */
+    protected function _testAddPayment(DarwinPricing_Client_Price $profit, $visitorId, $visitorIp = null) {
         foreach (array(
     array('expected' => true, 'curlReturn' => ''),
     array('expected' => false, 'curlReturn' => false),
@@ -543,6 +567,40 @@ class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
             $this->assertTrue(isset($dynamicPriceListActual[$key]));
             $this->assertSame((float) $dynamicPriceExpected['value'], $dynamicPriceListActual[$key]->getValue());
             $this->assertSame(isset($dynamicPriceExpected['currency']) ? $dynamicPriceExpected['currency'] : null, $dynamicPriceListActual[$key]->getCurrency());
+        }
+    }
+
+    /**
+     * @param DarwinPricing_Client_Order $order
+     */
+    protected function _testTrackOrder(DarwinPricing_Client_Order $order) {
+        foreach (array(
+    array('expected' => true, 'curlReturn' => ''),
+    array('expected' => false, 'curlReturn' => false),
+        ) as $testData) {
+            $expected = $testData['expected'];
+            $curlReturn = $testData['curlReturn'];
+            $client = new DarwinPricing_Client('http://api.darwinpricing.com', 123456, 'abc');
+            $transportMock = $this->_getTransportMock();
+            $client->setTransportImplementation($transportMock);
+            $parameterListExpected = array(
+                'site-id' => 123456,
+                'hash' => 'abc',
+                'visitor-ip' => '127.0.0.1',
+            );
+            $bodyExpected = (string) $order;
+            $optionListExpected = array(
+                CURLOPT_POST => true,
+                CURLOPT_URL => 'http://api.darwinpricing.com/webhook/order?' . http_build_query($parameterListExpected),
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT_MS => 3000,
+                CURLOPT_POSTFIELDS => $bodyExpected,
+            );
+            $transportMock->expects($this->once())->method('_curlExec')->with($optionListExpected)->will($this->returnValue($curlReturn));
+
+            $this->assertSame($expected, $client->trackOrder($order));
         }
     }
 
