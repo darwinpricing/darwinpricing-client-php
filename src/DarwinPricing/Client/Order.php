@@ -15,7 +15,7 @@ class DarwinPricing_Client_Order {
     protected $_itemList;
 
     /**
-     * @param string $couponCode
+     * @param string $couponCode The coupon code redeemed for this order
      */
     public function addCoupon($couponCode) {
         $couponCode = (string) $couponCode;
@@ -25,13 +25,13 @@ class DarwinPricing_Client_Order {
     }
 
     /**
-     * @param float       $unitPrice
-     * @param int         $quantity
-     * @param string|null $sku
-     * @param string|null $productId
-     * @param string|null $variantId
-     * @param float|null  $unitCost
-     * @param float|null  $vatRate
+     * @param float       $unitPrice The unit price of this item (including VAT when applicable)
+     * @param int         $quantity  The number of items sold for this order
+     * @param string|null $sku       Your SKU for this item
+     * @param string|null $productId The item's internal product ID in your eCommerce system
+     * @param string|null $variantId The item's internal variant ID in your eCommerce system
+     * @param float|null  $unitCost  Your average unit costs to purchase or produce this item
+     * @param float|null  $vatRate   The Value Added Tax rate in percent for this item (when applicable)
      */
     public function addItem($unitPrice, $quantity, $sku = null, $productId = null, $variantId = null, $unitCost = null, $vatRate = null) {
         $unitPrice = (float) $unitPrice;
@@ -83,7 +83,7 @@ class DarwinPricing_Client_Order {
     }
 
     /**
-     * @param string|null $currency
+     * @param string|null $currency The currency code for this order (3 letters code according to ISO 4217)
      */
     public function setCurrency($currency) {
         if (null !== $currency) {
@@ -100,7 +100,7 @@ class DarwinPricing_Client_Order {
     }
 
     /**
-     * @param string|null $customerId
+     * @param string|null $customerId Your reference for this customer
      */
     public function setCustomerId($customerId) {
         if (null !== $customerId) {
@@ -117,7 +117,7 @@ class DarwinPricing_Client_Order {
     }
 
     /**
-     * @param string|null $customerIp
+     * @param string|null $customerIp The IP address of this customer
      */
     public function setCustomerIp($customerIp) {
         if (null !== $customerIp) {
@@ -134,7 +134,7 @@ class DarwinPricing_Client_Order {
     }
 
     /**
-     * @param string|null $email
+     * @param string|null $email The e-mail address of this customer
      */
     public function setEmail($email) {
         if (null !== $email) {
@@ -151,7 +151,7 @@ class DarwinPricing_Client_Order {
     }
 
     /**
-     * @param string|null $orderId
+     * @param string|null $orderId The internal ID of this order in your eCommerce system
      */
     public function setOrderId($orderId) {
         if (null !== $orderId) {
@@ -168,7 +168,7 @@ class DarwinPricing_Client_Order {
     }
 
     /**
-     * @param string|null $orderReference
+     * @param string|null $orderReference Your reference for this order
      */
     public function setOrderReference($orderReference) {
         if (null !== $orderReference) {
@@ -185,7 +185,7 @@ class DarwinPricing_Client_Order {
     }
 
     /**
-     * @param float|null $shippingAmount
+     * @param float|null $shippingAmount The shipping costs billed to your customer (including VAT when applicable)
      */
     public function setShippingAmount($shippingAmount) {
         if (null !== $shippingAmount) {
@@ -202,7 +202,7 @@ class DarwinPricing_Client_Order {
     }
 
     /**
-     * @param float|null $shippingVatRate
+     * @param float|null $shippingVatRate The Value Added Tax rate in percent for the shipping costs (when applicable)
      */
     public function setShippingVatRate($shippingVatRate) {
         if (null !== $shippingVatRate) {
@@ -219,7 +219,7 @@ class DarwinPricing_Client_Order {
     }
 
     /**
-     * @param float|null $taxes
+     * @param float|null $taxes The amount of sales tax for this order (not VAT)
      */
     public function setTaxes($taxes) {
         if (null !== $taxes) {
@@ -236,7 +236,7 @@ class DarwinPricing_Client_Order {
     }
 
     /**
-     * @param float|null $total
+     * @param float|null $total The total amount billed to your customer (including taxes)
      */
     public function setTotal($total) {
         if (null !== $total) {
