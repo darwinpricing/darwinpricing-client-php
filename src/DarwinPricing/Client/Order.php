@@ -219,7 +219,7 @@ class DarwinPricing_Client_Order {
     }
 
     /**
-     * @param float|null $taxes The amount of sales tax for this order (not VAT)
+     * @param float|null $taxes The amount of sales tax (not VAT) for this order
      */
     public function setTaxes($taxes) {
         if (null !== $taxes) {

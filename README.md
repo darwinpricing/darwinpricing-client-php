@@ -25,7 +25,7 @@ Then load this script asynchronously on your website:
 <script>(function(d,t,s,f){s=d.createElement(t);s.src=<?php echo json_encode($widgetUrl); ?>;s.async=1;f=d.getElementsByTagName(t)[0];f.parentNode.insertBefore(s,f)})(document,'script')</script>
 ```
 
-For a back-end integration using geo-targeted coupon codes resp. pricing plans, retrieve the discount percentage and the coupon code resp. the code of the pricing plan with:
+For a back-end integration using geo-targeted coupon codes (resp. pricing plans), retrieve the discount percentage and the coupon code (resp. the pricing plan) with:
 ```php
 $discountPercent = $darwinPricing->getDiscountPercent();
 $discountCode = $darwinPricing->getDiscountCode();
@@ -42,3 +42,43 @@ $profitCurrencyCode = 'USD'; // Use the 3 letters code according to ISO 4217
 $profit = new \DarwinPricing_Client_Price($profitAmount, $profitCurrencyCode);
 $darwinPricing->addPayment($profit);
 ```
+
+Darwin Pricing optimizes automatically your geo-pricing strategy in order to maximize your total net profit.
+But you can also maximize any other KPI of your choice, depending on your current business goals.
+Just send us the appropriate metric instead of your net profit, and your geo-pricing strategy will be optimized accordingly.
+
+## Order Details
+
+Instead of computing your net profits, you can also send directly the full order details to your Darwin Pricing account.
+Net profits will then be computed on your behalf.
+This will also unlock enhanced reporting capabilities in your Darwin Pricing account, like profit margins and coupon code usage.
+
+In order to track new orders, use:
+```php
+$order = new DarwinPricing_Client_Order();
+$order->setCustomerIp('134.3.197.187'); // The IP address of your customer
+$order->setCustomerId('#12321'); // Your reference for this customer (optional)
+$order->setEmail('customer@example.com'); // The e-mail address of this customer (optional)
+
+$order->setOrderId('12345'); // The internal ID of this order in your eCommerce system
+$order->setOrderReference('#201612345'); // Your reference for this order (optional)
+$order->setCurrency('USD'); // The currency code for this order (3 letters code according to ISO 4217)
+// For each item sold:
+//  - The unit price of this item (including VAT when applicable)
+//  - The number of items sold for this order
+//  - Your SKU for this item (optional)
+//  - The item's internal product ID in your eCommerce system (optional)
+//  - The item's internal variant ID in your eCommerce system (optional)
+//  - Your average unit costs to purchase or produce this item (optional)
+//  - The Value Added Tax rate in percent for this item (when applicable)
+$order->addItem(120.90, 3, 'A1234', '123', '456', 89.95, 19.5);
+$order->addCoupon('HAPPY10'); // The coupon code redeemed for this order (optional)
+$order->setShippingAmount(9.99); // The shipping costs billed to your customer (optional, including VAT when applicable)
+$order->setShippingVatRate(12.8); // The Value Added Tax rate in percent for the shipping costs (when applicable)
+$order->setTaxes(38.85); // The amount of sales tax (not VAT) for this order (when applicable)
+$order->setTotal(375.54); // The total amount billed to your customer (including taxes)
+
+$darwinPricing->trackOrder($order);
+```
+
+The customer's e-mail address is only being used to serve geo-targeted newsletter banners in case they are being loaded through an image proxy, like in Google Mail.
