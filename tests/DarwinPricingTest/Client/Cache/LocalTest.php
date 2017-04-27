@@ -1,6 +1,6 @@
 <?php
 
-class DarwinPricingTest_Client_Cache_LocalTest extends PHPUnit_Framework_TestCase {
+class DarwinPricingTest_Client_Cache_LocalTest extends PHPUnit\Framework\TestCase {
 
     public function setUp() {
         $this->_getCache()->flush();

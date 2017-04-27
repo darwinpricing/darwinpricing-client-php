@@ -1,6 +1,6 @@
 <?php
 
-class DarwinPricingTest_ClientTest extends PHPUnit_Framework_TestCase {
+class DarwinPricingTest_ClientTest extends PHPUnit\Framework\TestCase {
 
     public function setUp() {
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';

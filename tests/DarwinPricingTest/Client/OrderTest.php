@@ -1,6 +1,6 @@
 <?php
 
-class DarwinPricingTest_Client_OrderTest extends PHPUnit_Framework_TestCase {
+class DarwinPricingTest_Client_OrderTest extends PHPUnit\Framework\TestCase {
 
     public function testSetters() {
         $order = new DarwinPricing_Client_Order();
