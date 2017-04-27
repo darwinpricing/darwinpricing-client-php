@@ -15,7 +15,7 @@ $clientSecret = 'abcdef'; // Use the client secret of your Darwin Pricing accoun
 $darwinPricing = new \DarwinPricing_Client($serverUrl, $clientId, $clientSecret);
 ```
 
-For a front-end integration using a geo-targeted coupon box, retrieve the URL of the front-end script:
+In order to add our geo-targeted coupon box to your storefront, retrieve the URL of the front-end script:
 ```php
 $widgetUrl = $darwinPricing->getWidgetUrl();
 ```
@@ -23,12 +23,6 @@ $widgetUrl = $darwinPricing->getWidgetUrl();
 Then load this script asynchronously on your website:
 ```html
 <script>(function(d,t,s,f){s=d.createElement(t);s.src=<?php echo json_encode($widgetUrl); ?>;s.async=1;f=d.getElementsByTagName(t)[0];f.parentNode.insertBefore(s,f)})(document,'script')</script>
-```
-
-For a back-end integration using geo-targeted coupon codes (resp. pricing plans), retrieve the discount percentage and the coupon code (resp. the pricing plan) with:
-```php
-$discountPercent = $darwinPricing->getDiscountPercent();
-$discountCode = $darwinPricing->getDiscountCode();
 ```
 
 To track payments and payment reversals, use:
@@ -82,3 +76,18 @@ $darwinPricing->trackOrder($order);
 ```
 
 The customer's e-mail address is only being used to serve geo-targeted newsletter banners in case they are being loaded through an image proxy, like in Google Mail.
+
+## Custom integration
+
+Instead of adding our geo-targeted coupon box to your storefront, you can also retrieve the geo-targeted coupon code from the backend of your store with:
+```php
+$visitorIp = '134.3.197.187'; // Use the IP address of your visitor
+$visitor = new \DarwinPricing_Client_Visitor($visitorIp);
+$darwinPricing->setVisitor($visitor);
+
+$discountPercent = $darwinPricing->getDiscountPercent();
+$discountCode = $darwinPricing->getDiscountCode();
+```
+This is especially useful if you want to adjust directly your prices to the local market without using a coupon code for this purpose.
+If you are selling a subscription-based product, you can also retrieve a pricing plan identifier instead of a discount code.
+Contact us at support@darwinpricing.com to find out the best solution to fit your needs!
