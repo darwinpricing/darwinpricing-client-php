@@ -2,6 +2,7 @@
 PHP Client for the dynamic geo-pricing engine [Darwin Pricing](https://www.darwinpricing.com) by [SPOSEA](https://www.sposea.com)
 
 [![Build Status](https://travis-ci.org/darwinpricing/darwinpricing-client-php.svg?branch=master)](https://travis-ci.org/darwinpricing/darwinpricing-client-php)
+[ ![Codeship Status for darwinpricing/darwinpricing-client-php](https://app.codeship.com/projects/93dcca60-178c-0135-39aa-2ed2ddbc2e39/status?branch=master)](https://app.codeship.com/projects/218577)
 
 ## Basic Usage
 
